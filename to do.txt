@@ -1,0 +1,26 @@
+ok, now, i need something like you can click on a specific class and a page for that class appear,
+on this page, 
+user will be able to assign departments for this class,
+able to assign subjects for this class, 
+the subjects can be assigned directly under class,
+or subjects can be assigned for each departments of this class.
+
+asigned department and subject can be shown in a list format.
+
+here on this page there will be a table for teachers,
+which shows the teachers who are assigned to this class, and the teachers can have assigned subjects too.
+
+there will a table for students showing enrolled students for this class, and their attandence status for today.
+
+there will a history part, where it will show details of this class upon clicking on a calender.
+
+what the histoy part show:
+
+class start time,
+how many subjects are/ware to tought on that day, 
+class end time,
+attandence percentage of that date, 
+
+on that date is there an exam held? if held, then we can click on that exam link and show details of that exam, on other page, (which we'll develop lager)
+
+if that date was a holidy or school off, we can show a message like OffDay or Holiday or something else

@@ -1,0 +1,178 @@
+/* Sticky header for the top navigation */
+.sticky-top {
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+  background: #fff;
+}
+
+/* Ensure proper spacing for teachers page sticky header */
+.sticky-header {
+  position: sticky;
+  top: 56px;
+  z-index: 1000;
+  background: white;
+}
+
+/* Make all tables horizontally scrollable */
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Sticky table header */
+.table-responsive thead th {
+    position: sticky;
+    top: 0;
+    background: #f8f9fa;
+    z-index: 2;
+}
+
+/* Fix for card table headers */
+.card .table-responsive thead th {
+    position: sticky;
+    top: 0;
+    background: #f8f9fa;
+    z-index: 2;
+    border-top: none;
+}
+
+/* Remove top border from classes table header */
+#classesTable thead tr {
+    border-top-width: 0px;
+}
+
+/* Custom navbar background color */
+.navbar {
+  background-color: #96c1ec !important;
+}
+
+.badge.bg-secondary.subject-badge {
+    font-size: 1rem;
+    padding: 0.5em 1em;
+}
+
+/* Department toggle styling */
+.toggle-dept {
+    color: #495057;
+    transition: color 0.3s ease;
+}
+
+.toggle-dept:hover {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.toggle-icon {
+    transition: transform 0.3s ease;
+    color: #6c757d;
+}
+
+.toggle-dept:hover .toggle-icon {
+    color: #007bff;
+}
+
+/* Responsive spacing for sections */
+@media (max-width: 991.98px) {
+    .col-lg-4.col-md-12 {
+        margin-top: 2rem;
+    }
+}
+
+/* Disabled form controls styling */
+.form-select:disabled {
+    background-color: #e9ecef;
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Classes page responsive styling */
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.table-responsive {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* Ensure consistent table heights on large screens */
+@media (min-width: 992px) {
+    .col-lg-4 .card {
+        height: 100%;
+    }
+    
+    .col-lg-4 .table-responsive {
+        height: calc(100% - 60px); /* Subtract card header height */
+    }
+}
+
+/* Sticky header styling - shadow removed */
+
+/* Sortable table headers */
+.sortable {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+}
+
+.sortable:hover {
+    background-color: #f8f9fa;
+}
+
+.sortable i {
+    margin-left: 5px;
+    opacity: 0.5;
+}
+
+.sortable.asc i::before {
+    content: "\f0de"; /* fa-sort-up */
+    opacity: 1;
+}
+
+.sortable.desc i::before {
+    content: "\f0dd"; /* fa-sort-down */
+    opacity: 1;
+}
+
+.sortable.asc i,
+.sortable.desc i {
+    opacity: 1;
+}
+
+/* Pagination section styles */
+.pagination-section {
+    position: sticky;
+    bottom: 0;
+    z-index: 1000;
+    background: white;
+}
+
+/* Teachers page specific table container */
+#teachersTable {
+    margin-bottom: 0;
+}
+
+/* Ensure table header stays visible when scrolling */
+.table-responsive thead th {
+    position: sticky;
+    top: 0;
+    background: #e3f2fd;
+    z-index: 1;
+    border-bottom: 2px solid #2196f3;
+    color: #1976d2;
+    font-weight: 600;
+}
+
+/* Teachers table specific header styling */
+#teachersTable thead th {
+    background: #e3f2fd;
+    color: #1976d2;
+    font-weight: 600;
+}
