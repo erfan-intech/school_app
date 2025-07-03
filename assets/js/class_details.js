@@ -8,22 +8,18 @@ $(document).ready(function() {
                 $('#className').text(res.class_name);
                 $('#classNameHeader').html('Class Name: <span id="className">' + res.class_name + '</span>');
                 $('#className').css('color', 'blue');
-                // Departments section - check for real departments (id != 0)
-                var realDepartments = res.departments.filter(d => d.id != 0);
-                if (realDepartments.length > 0) {
-                    console.log('Real departments found:', realDepartments); // Debug
-                    renderDepartments(realDepartments);
+                // Departments section - show independent departments
+                if (res.departments && res.departments.length > 0) {
+                    console.log('Independent departments found:', res.departments); // Debug
+                    renderDepartments(res.departments);
                     $('#departmentsSection').show();
-                    $('#subjectsSection').hide();
-                    // Replace Edit button with Add Subjects
-                    $('#departmentsActionBtnContainer').html('<button class="btn btn-sm btn-outline-primary ms-2" id="addSubjectsBtn">Add/Remove Subjects</button>');
                 } else {
                     $('#departmentsSection').hide();
+                }
+                
+                // Always show subjects section
                     renderSubjects(res.subjects, res.teachers, res.departments);
                     $('#subjectsSection').show();
-                    // Change the header to "Global Subjects" when no real departments
-                    $('#subjectsSection h4').html('Global Subjects <button class="btn btn-sm btn-outline-primary ms-2" id="editSubjectsBtn">Edit</button>');
-                }
                 // Subjects by department
                 var byDeptHtml = '';
                 var depts = {};
@@ -255,52 +251,7 @@ $(document).ready(function() {
             if (res.success) loadClassDetails();
         }, 'json');
     });
-    // Edit class (departments) modal logic
-    $('#editClassBtn').click(function() {
-        $.get('../api/get_departments.php', function(deptRes) {
-            if (deptRes.success) {
-                $.get('../api/get_class_details.php', {class_id: classId}, function(res) {
-                    if (res.success) {
-                        var assigned = res.departments.map(d => d.id.toString());
-                        var checkboxes = '';
-                        deptRes.data.forEach(function(d) {
-                            var checked = assigned.includes(d.id.toString()) ? 'checked' : '';
-                            checkboxes += `<div class='form-check'><input class='form-check-input' type='checkbox' value='${d.id}' id='edit_class_dept_${d.id}' name='departments[]' ${checked}><label class='form-check-label' for='edit_class_dept_${d.id}'>${d.name}</label></div>`;
-                        });
-                        $('#editClassDepartmentsCheckboxes').html(checkboxes);
-                        $('#editClassModal').modal('show');
-                    }
-                });
-            }
-        });
-    });
-    // Save class departments
-    $('#editClassForm').submit(function(e) {
-        e.preventDefault();
-        var selectedDepts = [];
-        $('#editClassDepartmentsCheckboxes input[type=checkbox]:checked').each(function() {
-            selectedDepts.push($(this).val());
-        });
-        $.get('../api/get_departments.php', function(deptRes) {
-            if (deptRes.success) {
-                var allDeptIds = deptRes.data.map(d => d.id.toString());
-                // Remove unselected
-                allDeptIds.forEach(function(id) {
-                    if (!selectedDepts.includes(id)) {
-                        $.post('../api/assign_department_to_class.php', {class_id: classId, department_id: id, action: 'remove'});
-                    }
-                });
-                // Add selected
-                selectedDepts.forEach(function(id) {
-                    $.post('../api/assign_department_to_class.php', {class_id: classId, department_id: id, action: 'add'});
-                });
-            }
-        });
-        setTimeout(function() {
-            $('#editClassModal').modal('hide');
-            loadClassDetails();
-        }, 500);
-    });
+
     // Toggle department to show assigned subjects only
     $(document).on('click', '.toggle-dept', function(e) {
         e.preventDefault();
@@ -365,201 +316,8 @@ $(document).ready(function() {
             loadClassDetails();
         }, 500);
     });
-    // Open edit modal for subjects
-    $('#editSubjectsBtn').click(function() {
-        $.get('../api/get_class_details.php', {class_id: classId}, function(res) {
-            if (res.success) {
-                var departments = res.departments;
-                $.get('../api/get_subjects.php', function(subjRes) {
-                    if (subjRes.success) {
-                        var allSubjects = subjRes.data;
-                        var html = '';
-                        if (departments.length > 0) {
-                            // Per-department subject assignment
-                            departments.forEach(function(dept) {
-                                html += `<div class='mb-3'><strong>${dept.name}</strong><div id='subjectsCheckboxes_dept_${dept.id}'></div></div>`;
-                                // Assigned subjects for this department
-                                var assigned = res.subjects.filter(s => parseInt(s.department_id) === parseInt(dept.id)).map(s => s.subject_id.toString());
-                                var checkboxes = '';
-                                allSubjects.forEach(function(s) {
-                                    var checked = assigned.includes(s.id.toString()) ? 'checked' : '';
-                                    checkboxes += `<div class='form-check d-inline-block me-3'><input class='form-check-input' type='checkbox' value='${s.id}' id='subj_${s.id}_dept_${dept.id}' name='subjects_dept_${dept.id}[]' ${checked}><label class='form-check-label' for='subj_${s.id}_dept_${dept.id}'>${s.name}</label></div>`;
-                                });
-                                setTimeout(function() { // Ensure DOM is ready
-                                    $(`#subjectsCheckboxes_dept_${dept.id}`).html(checkboxes);
-                                }, 0);
-                            });
-                        } else {
-                            // No departments, assign globally
-                            // Fetch assigned subject_ids for this class (no department)
-                            var assigned = res.subjects.filter(s => !s.department_id).map(s => s.subject_id.toString());
-                            var checkboxes = '';
-                            allSubjects.forEach(function(s) {
-                                checkboxes += `<div class='form-check d-inline-block me-3'><input class='form-check-input' type='checkbox' value='${s.id}' id='subj_${s.id}' name='subjects[]'><label class='form-check-label' for='subj_${s.id}'>${s.name}</label></div>`;
-                            });
-                            html += `<div class='mb-3'><strong>Subjects</strong><div id='subjectsCheckboxes'>${checkboxes}</div></div>`;
-                            setTimeout(function() {
-                                // Explicitly check assigned checkboxes
-                                assigned.forEach(function(id) {
-                                    $("#subjectsCheckboxes input[type=checkbox][value='"+id+"']").prop('checked', true);
-                                });
-                            }, 0);
-                        }
-                        $('#subjectsByDeptContainer').html(html);
-                        $('#editSubjectsModal').modal('show');
-                    }
-                });
-            }
-        });
-    });
-    // Save subjects
-    $('#editSubjectsForm').submit(function(e) {
-        e.preventDefault();
-        $.get('../api/get_class_details.php', {class_id: classId}, function(res) {
-            if (res.success) {
-                var departments = res.departments;
-                $.get('../api/get_subjects.php', function(subjRes) {
-                    if (subjRes.success) {
-                        var allSubjects = subjRes.data.map(s => s.id.toString());
-                        if (departments.length > 0) {
-                            // Per-department
-                            departments.forEach(function(dept) {
-                                var selectedSubjs = [];
-                                $(`#subjectsCheckboxes_dept_${dept.id} input[type=checkbox]:checked`).each(function() {
-                                    selectedSubjs.push($(this).val());
-                                });
-                                // Remove unselected
-                                allSubjects.forEach(function(id) {
-                                    if (!selectedSubjs.includes(id)) {
-                                        $.post('../api/assign_subject_to_class.php', {class_id: classId, subject_id: id, department_id: dept.id, action: 'remove'});
-                                    }
-                                });
-                                // Add selected
-                                selectedSubjs.forEach(function(id) {
-                                    $.post('../api/assign_subject_to_class.php', {class_id: classId, subject_id: id, department_id: dept.id, action: 'add'});
-                                });
-                            });
-                        } else {
-                            // Global
-                            var selectedSubjs = [];
-                            $('#subjectsCheckboxes input[type=checkbox]:checked').each(function() {
-                                selectedSubjs.push($(this).val());
-                            });
-                            // Check for duplicates
-                            var unique = new Set(selectedSubjs);
-                            if (unique.size !== selectedSubjs.length) {
-                                alert('Duplicate subjects selected. Please select each subject only once.');
-                                return;
-                            }
-                            // Remove unselected
-                            allSubjects.forEach(function(id) {
-                                if (!selectedSubjs.includes(id)) {
-                                    $.post('../api/assign_subject_to_class.php', {class_id: classId, subject_id: id, department_id: 0, action: 'remove'});
-                                }
-                            });
-                            // Add selected (prevent duplicate requests)
-                            var added = new Set();
-                            selectedSubjs.forEach(function(id) {
-                                if (!added.has(id)) {
-                                    $.post('../api/assign_subject_to_class.php', {class_id: classId, subject_id: id, department_id: 0, action: 'add'});
-                                    added.add(id);
-                                }
-                            });
-                        }
-                        setTimeout(function() {
-                            $('#editSubjectsModal').modal('hide');
-                            loadClassDetails();
-                        }, 500);
-                    }
-                });
-            }
-        });
-    });
-    // Add Subjects modal logic
-    $(document).on('click', '#addSubjectsBtn', function() {
-        $.get('../api/get_class_details.php', {class_id: classId}, function(res) {
-            if (res.success) {
-                var departments = res.departments;
-                $.get('../api/get_subjects.php', function(subjRes) {
-                    if (subjRes.success) {
-                        var allSubjects = subjRes.data;
-                        var html = '';
-                        var assignedMap = {};
-                        departments.forEach(function(dept) {
-                            assignedMap[dept.id] = res.subjects.filter(s => parseInt(s.department_id) === parseInt(dept.id)).map(s => s.subject_id.toString());
-                        });
-                        departments.forEach(function(dept) {
-                            html += `<div class='mb-3'><strong>${dept.name}</strong><div id='assignSubjectsCheckboxes_dept_${dept.id}'></div></div>`;
-                            var checkboxes = '';
-                            allSubjects.forEach(function(s) {
-                                checkboxes += `<div class='form-check d-inline-block me-3'><input class='form-check-input assign-dept-subj-checkbox' type='checkbox' value='${s.id}' data-dept='${dept.id}' id='assign_subj_${s.id}_dept_${dept.id}' name='assign_subjects_dept_${dept.id}[]'><label class='form-check-label' for='assign_subj_${s.id}_dept_${dept.id}'>${s.name}</label></div>`;
-                            });
-                            html += `<div class='mb-2' id='assignSubjectsCheckboxes_dept_${dept.id}_container'>${checkboxes}</div>`;
-                        });
-                        $('#assignSubjectsModalBody').html(html);
-                        // Explicitly check assigned checkboxes for each department
-                        departments.forEach(function(dept) {
-                            var assigned = assignedMap[dept.id] || [];
-                            assigned.forEach(function(id) {
-                                $(`#assignSubjectsCheckboxes_dept_${dept.id}_container input[type=checkbox][value='${id}']`).prop('checked', true);
-                            });
-                        });
-                        $('#assignSubjectsModal').modal('show');
-                    }
-                });
-            }
-        });
-    });
-    // Save subjects for all departments
-    $('#assignSubjectsForm').submit(function(e) {
-        e.preventDefault();
-        $.get('../api/get_class_details.php', {class_id: classId}, function(res) {
-            if (res.success) {
-                var departments = res.departments;
-                $.get('../api/get_subjects.php', function(subjRes) {
-                    if (subjRes.success) {
-                        var allSubjects = subjRes.data.map(s => s.id.toString());
-                        var duplicateFound = false;
-                        departments.forEach(function(dept) {
-                            var selectedSubjs = [];
-                            $(`#assignSubjectsCheckboxes_dept_${dept.id}_container input[type=checkbox]:checked`).each(function() {
-                                selectedSubjs.push($(this).val());
-                            });
-                            // Check for duplicates in this department
-                            var unique = new Set(selectedSubjs);
-                            if (unique.size !== selectedSubjs.length) {
-                                duplicateFound = true;
-                            }
-                        });
-                        if (duplicateFound) {
-                            alert('Duplicate subjects selected for a department. Please select each subject only once per department.');
-                            return;
-                        }
-                        departments.forEach(function(dept) {
-                            var selectedSubjs = [];
-                            $(`#assignSubjectsCheckboxes_dept_${dept.id}_container input[type=checkbox]:checked`).each(function() {
-                                selectedSubjs.push($(this).val());
-                            });
-                            // Remove unselected
-                            allSubjects.forEach(function(id) {
-                                if (!selectedSubjs.includes(id)) {
-                                    $.post('../api/assign_subject_to_class.php', {class_id: classId, subject_id: id, department_id: dept.id, action: 'remove'});
-                                }
-                            });
-                            // Add selected
-                            selectedSubjs.forEach(function(id) {
-                                $.post('../api/assign_subject_to_class.php', {class_id: classId, subject_id: id, department_id: dept.id, action: 'add'});
-                            });
-                        });
-                    }
-                });
-            }
-        });
-        setTimeout(function() {
-            $('#assignSubjectsModal').modal('hide');
-            loadClassDetails();
-        }, 500);
-    });
+
+
     // Open Assign Teachers modal
     $('#assignTeachersBtn').click(function() {
         // Fetch all teachers and assigned teachers
@@ -605,7 +363,7 @@ $(document).ready(function() {
                         // Add checked
                         selected.forEach(function(id) {
                             if (!assignedIds.includes(id)) {
-                                $.post('../api/assign_teacher_to_class.php', {class_id: classId, teacher_id: id, action: 'add'});
+                                $.post('../api/assign_teacher_to_class.php', {class_id: classId, teacher_id: id, subject_id: null, department_id: null, action: 'add'});
                             }
                         });
                         setTimeout(function() {
@@ -657,7 +415,7 @@ $(document).ready(function() {
                 $('#editTeacherDepartmentsContainer').hide();
             }
             // Subjects rendering for departments
-            function renderSubjectsForDepartments() {
+            window.renderSubjectsForDepartments = function() {
                 departments.forEach(function(dept) {
                     var deptId = dept.id;
                     var show = $(`#edit_teacher_dept_${deptId}`).is(':checked');
@@ -682,13 +440,9 @@ $(document).ready(function() {
                     }
                     $(`#edit_teacher_subjects_list_${deptId}`).html(subjHtml).toggle(show);
                 });
-            }
+            };
             // Initial render
             if (departments.length > 0) renderSubjectsForDepartments();
-            // Toggle subjects list on department checkbox change
-            $(document).off('change', '.edit-teacher-dept-checkbox').on('change', '.edit-teacher-dept-checkbox', function() {
-                renderSubjectsForDepartments();
-            });
             // For classes without departments
             if (departments.length === 0) {
                 var subjHtml = '<label class="form-label">Subjects</label><ul class="list-group">';
@@ -711,130 +465,768 @@ $(document).ready(function() {
             $('#editTeacherSubjectsModal').modal('show');
         });
     });
-    // Submit edit teacher subjects form
-    $('#editTeacherSubjectsForm').off('submit').on('submit', function(e) {
-        e.preventDefault();
+    // Handle individual subject checkbox changes
+    $(document).off('change', '.edit-teacher-subj-checkbox').on('change', '.edit-teacher-subj-checkbox', function() {
         var classId = $('#classDetailsApp').data('class-id');
-        var teacherId = $(this).data('teacher-id');
-        var departments = $('.edit-teacher-dept-checkbox:checked').map(function() { return $(this).val(); }).get();
-        var subjects = $('.edit-teacher-subj-checkbox:checked').map(function() { return $(this).val(); }).get();
+        var teacherId = $('#editTeacherSubjectsForm').data('teacher-id');
+        var subjectId = $(this).val();
+        var departmentId = $(this).data('department-id') || null;
+        var action = $(this).is(':checked') ? 'add' : 'remove';
+        
         $.post('../api/edit_teacher_subjects.php', {
             class_id: classId,
             teacher_id: teacherId,
-            departments: departments,
-            subjects: subjects
+            subject_id: subjectId,
+            department_id: departmentId,
+            action: action
         }, function(res) {
             if (res.success) {
-                $('#editTeacherSubjectsModal').modal('hide');
-                loadClassDetails();
+                // Optionally refresh the class details to show updated state
+                // loadClassDetails();
             } else {
-                alert(res.message || 'Failed to update teacher assignments.');
+                alert(res.message || 'Failed to update teacher assignment.');
+                // Revert the checkbox state if the operation failed
+                $(this).prop('checked', !$(this).is(':checked'));
             }
         }, 'json');
     });
-    // Sections Modal Logic
-    $('#editSectionsBtn').on('click', function() {
-        $('#editSectionsModal').modal('show');
-        $.get('../api/get_sections.php', function(sectionRes) {
-            if (sectionRes.success) {
-                // Get class details (departments and assigned sections)
-                function renderSectionsModal(classDetails) {
-                    var departments = (classDetails.departments || []).filter(d => d.id != 0);
+
+    // Handle individual department checkbox changes
+    $(document).off('change', '.edit-teacher-dept-checkbox').on('change', '.edit-teacher-dept-checkbox', function() {
+        var classId = $('#classDetailsApp').data('class-id');
+        var teacherId = $('#editTeacherSubjectsForm').data('teacher-id');
+        var departmentId = $(this).val();
+        var action = $(this).is(':checked') ? 'add' : 'remove';
+        var $this = $(this);
+        
+        console.log('Department checkbox changed:', departmentId, action); // Debug log
+        
+        $.post('../api/edit_teacher_subjects.php', {
+            class_id: classId,
+            teacher_id: teacherId,
+            department_id: departmentId,
+            action: action
+        }, function(res) {
+            if (res.success) {
+                // If removing department, also uncheck all subject checkboxes in that department
+                if (action === 'remove') {
+                    $(`.edit-teacher-subj-checkbox[data-department-id="${departmentId}"]`).prop('checked', false);
+                }
+                // Refresh the subjects list for this department
+                if (window.renderSubjectsForDepartments) {
+                    window.renderSubjectsForDepartments();
+                }
+            } else {
+                alert(res.message || 'Failed to update teacher assignment.');
+                // Revert the checkbox state if the operation failed
+                $this.prop('checked', !$this.is(':checked'));
+            }
+        }, 'json');
+    });
+
+    // Submit edit teacher subjects form (now just closes the modal)
+    $('#editTeacherSubjectsForm').off('submit').on('submit', function(e) {
+        e.preventDefault();
+        $('#editTeacherSubjectsModal').modal('hide');
+        loadClassDetails(); // Refresh to show any changes
+    });
+
+    // TODO: Populate department, subject, and teacher selects with available options (AJAX or server-side)
+    
+    // Edit Class Structure Modal Logic
+    $('#editClassStructureBtn').on('click', function() {
+        $('#editClassStructureModal').modal('show');
+        loadClassStructureData();
+    });
+    
+    function loadClassStructureData() {
+        // Load all available data
+        Promise.all([
+            $.get('../api/get_departments.php'),
+            $.get('../api/get_sections.php'),
+            $.get('../api/get_subjects.php'),
+            $.get('../api/get_class_details.php', { class_id: classId })
+        ]).then(function(responses) {
+            var departmentsRes = responses[0];
+            var sectionsRes = responses[1];
+            var subjectsRes = responses[2];
+            var classDetailsRes = responses[3];
+            
+            if (departmentsRes.success && sectionsRes.success && subjectsRes.success && classDetailsRes.success) {
+                // Store data globally for event handlers
+                window.lastDepartmentsData = departmentsRes.data;
+                window.lastSectionsData = sectionsRes.data;
+                window.lastSubjectsData = subjectsRes.data;
+                window.lastClassDetails = classDetailsRes;
+                
+                renderClassStructureModal(departmentsRes.data, sectionsRes.data, subjectsRes.data, classDetailsRes);
+            } else {
+                alert('Failed to load data for class structure editing.');
+            }
+        }).catch(function() {
+            alert('Failed to load data for class structure editing.');
+        });
+    }
+    
+    function renderClassStructureModal(departments, sections, subjects, classDetails) {
+        // Set up initial state based on current class structure
+        var hasDepartments = classDetails.departments && classDetails.departments.length > 0;
+        var hasSections = classDetails.sections && classDetails.sections.length > 0;
+        
+        $('#hasDepartmentsCheck').prop('checked', hasDepartments);
+        $('#hasSectionsCheck').prop('checked', hasSections);
+        
+        // Debug logging
+        console.log('renderClassStructureModal - departments:', departments);
+        console.log('renderClassStructureModal - classDetails.departments:', classDetails.departments);
+        console.log('renderClassStructureModal - hasDepartments:', hasDepartments);
+        console.log('renderClassStructureModal - hasSections:', hasSections);
+        
+        // Render department checkboxes
+        var deptHtml = '';
+        departments.forEach(function(dept) {
+            if (dept.id == 0) return; // Skip "None" department
+            var checked = hasDepartments && classDetails.departments.some(d => d.id == dept.id) ? 'checked' : '';
+            deptHtml += `<div class='form-check'>
+                <input class='form-check-input department-checkbox' type='checkbox' value='${dept.id}' id='dept_${dept.id}' ${checked}>
+                <label class='form-check-label' for='dept_${dept.id}'>${dept.name}</label>
+            </div>`;
+        });
+        $('#departmentsCheckboxes').html(deptHtml);
+        
+        console.log('Department checkboxes HTML:', deptHtml);
+        
+        // Apply conditional logic based on current state
+        updateModalSections(hasDepartments, hasSections, classDetails);
+    }
+    
+    function updateModalSections(hasDepartments, hasSections, classDetails) {
+        var selectedDepts = $('.department-checkbox:checked').map(function() {
+            return parseInt($(this).val());
+        }).get();
+        
+        console.log('updateModalSections - hasDepartments:', hasDepartments);
+        console.log('updateModalSections - hasSections:', hasSections);
+        console.log('updateModalSections - selectedDepts:', selectedDepts);
+        
+        // Hide all sections initially
+        $('#selectDepartmentsSection').hide();
+        $('#globalSectionsSection').hide();
+        $('#globalSubjectsSection').hide();
+        $('#departmentSectionsSection').hide();
+        $('#departmentSubjectsSection').hide();
+        
+        // Case 1: No departments and no sections
+        if (!hasDepartments && !hasSections) {
+            $('#globalSubjectsSection').show();
+            renderGlobalSubjects();
+        }
+        // Case 2: Only departments checked
+        else if (hasDepartments && !hasSections) {
+            $('#selectDepartmentsSection').show();
+            // Always show department subjects section, but populate based on selection
+            $('#departmentSubjectsSection').show();
+            renderAllDepartmentSubjects(); // Render all subjects for all departments
+            updateDepartmentSubjectsVisibility(selectedDepts); // Show only selected departments
+        }
+        // Case 3: Only sections checked
+        else if (!hasDepartments && hasSections) {
+            $('#globalSectionsSection').show();
+            $('#globalSubjectsSection').show();
+            renderGlobalSections();
+            renderGlobalSubjects();
+        }
+        // Case 4: Both departments and sections checked
+        else if (hasDepartments && hasSections) {
+            $('#selectDepartmentsSection').show();
+            $('#departmentSectionsSection').show();
+            $('#departmentSubjectsSection').show();
+            renderAllDepartmentSections(); // Render all sections for all departments
+            renderAllDepartmentSubjects(); // Render all subjects for all departments
+            updateDepartmentSectionsVisibility(selectedDepts); // Show only selected departments
+            updateDepartmentSubjectsVisibility(selectedDepts); // Show only selected departments
+        }
+    }
+    
+    function renderGlobalSections() {
+        if (!window.lastSectionsData) return;
+        
+        var assignedSections = window.lastClassDetails.sections || [];
+        var assignedMap = {};
+        
+        // Group assigned sections by department
+        assignedSections.forEach(function(s) {
+            var deptId = s.department_id || 'global';
+            if (!assignedMap[deptId]) assignedMap[deptId] = [];
+            assignedMap[deptId].push(s.id.toString());
+        });
+        
+        var globalSectionsHtml = '<div class="d-flex flex-wrap">';
+        window.lastSectionsData.forEach(function(section) {
+            if (section.id == 0) return;
+            var checked = (assignedMap['global'] || []).includes(section.id.toString()) ? 'checked' : '';
+            globalSectionsHtml += `<div class='form-check me-3 mb-2'>
+                <input class='form-check-input section-checkbox' type='checkbox' value='${section.id}' data-department-id='global' id='global_section_${section.id}' ${checked}>
+                <label class='form-check-label' for='global_section_${section.id}'>${section.name}</label>
+            </div>`;
+        });
+        globalSectionsHtml += '</div>';
+        $('#globalSectionsCheckboxes').html(globalSectionsHtml);
+    }
+    
+    function renderGlobalSubjects() {
+        if (!window.lastSubjectsData) return;
+        
+        var assignedSubjects = window.lastClassDetails.subjects || [];
+        var assignedMap = {};
+        
+        // Group assigned subjects by department
+        assignedSubjects.forEach(function(s) {
+            var deptId = s.department_id || 'global';
+            if (!assignedMap[deptId]) assignedMap[deptId] = [];
+            assignedMap[deptId].push(s.subject_id.toString());
+        });
+        
+        var globalSubjectsHtml = '<div class="d-flex flex-wrap">';
+        window.lastSubjectsData.forEach(function(subject) {
+            if (subject.id == 0) return;
+            var checked = (assignedMap['global'] || []).includes(subject.id.toString()) ? 'checked' : '';
+            globalSubjectsHtml += `<div class='form-check me-3 mb-2'>
+                <input class='form-check-input subject-checkbox' type='checkbox' value='${subject.id}' data-department-id='global' id='global_subject_${subject.id}' ${checked}>
+                <label class='form-check-label' for='global_subject_${subject.id}'>${subject.name}</label>
+            </div>`;
+        });
+        globalSubjectsHtml += '</div>';
+        $('#globalSubjectsCheckboxes').html(globalSubjectsHtml);
+    }
+    
+    function renderDepartmentSections(selectedDeptIds) {
+        if (!window.lastSectionsData || !selectedDeptIds || selectedDeptIds.length === 0) {
+            $('#departmentSectionsCheckboxes').html('');
+            return;
+        }
+        
+        var assignedSections = window.lastClassDetails.sections || [];
+        var assignedMap = {};
+        
+        // Group assigned sections by department
+        assignedSections.forEach(function(s) {
+            var deptId = s.department_id || 'global';
+            if (!assignedMap[deptId]) assignedMap[deptId] = [];
+            assignedMap[deptId].push(s.id.toString());
+        });
+        
+        var deptSectionsHtml = '';
+        var selectedDepartments = window.lastDepartmentsData.filter(d => selectedDeptIds.includes(d.id));
+        
+        selectedDepartments.forEach(function(dept) {
+            deptSectionsHtml += `<div class='mb-3'>
+                <div class='fw-bold'>${dept.name}:</div>`;
+            window.lastSectionsData.forEach(function(section) {
+                if (section.id == 0) return;
+                var checked = (assignedMap[dept.id] || []).includes(section.id.toString()) ? 'checked' : '';
+                deptSectionsHtml += `<div class='form-check ms-3'>
+                    <input class='form-check-input section-checkbox' type='checkbox' value='${section.id}' data-department-id='${dept.id}' id='dept_section_${section.id}_${dept.id}' ${checked}>
+                    <label class='form-check-label' for='dept_section_${section.id}_${dept.id}'>${section.name}</label>
+                </div>`;
+            });
+            deptSectionsHtml += `</div>`;
+        });
+        $('#departmentSectionsCheckboxes').html(deptSectionsHtml);
+    }
+    
+    function renderAllDepartmentSubjects() {
+        console.log('renderAllDepartmentSubjects called');
+        console.log('window.lastSubjectsData:', window.lastSubjectsData);
+        console.log('window.lastDepartmentsData:', window.lastDepartmentsData);
+        
+        if (!window.lastSubjectsData || !window.lastDepartmentsData) {
+            console.log('renderAllDepartmentSubjects - early return, data not available');
+            $('#departmentSubjectsCheckboxes').html('');
+            return;
+        }
+        
+        var assignedSubjects = window.lastClassDetails.subjects || [];
+        var assignedMap = {};
+        
+        // Group assigned subjects by department
+        assignedSubjects.forEach(function(s) {
+            var deptId = s.department_id || 'global';
+            if (!assignedMap[deptId]) assignedMap[deptId] = [];
+            assignedMap[deptId].push(s.subject_id.toString());
+        });
+        
+        var deptSubjectsHtml = '';
+        
+        // Render subjects for ALL departments
+        window.lastDepartmentsData.forEach(function(dept) {
+            if (dept.id == 0) return; // Skip "None" department
+            console.log('Processing department for subjects:', dept);
+            deptSubjectsHtml += `<div class='mb-3 department-subjects-group' data-department-id='${dept.id}'>
+                <div class='fw-bold mb-2'>${dept.name}:</div>
+                <div class='d-flex flex-wrap'>`;
+            window.lastSubjectsData.forEach(function(subject) {
+                if (subject.id == 0) return;
+                var checked = (assignedMap[dept.id] || []).includes(subject.id.toString()) ? 'checked' : '';
+                deptSubjectsHtml += `<div class='form-check me-3 mb-2'>
+                    <input class='form-check-input subject-checkbox' type='checkbox' value='${subject.id}' data-department-id='${dept.id}' id='dept_subject_${subject.id}_${dept.id}' ${checked}>
+                    <label class='form-check-label' for='dept_subject_${subject.id}_${dept.id}'>${subject.name}</label>
+                </div>`;
+            });
+            deptSubjectsHtml += `</div></div>`;
+        });
+        console.log('Generated all department subjects HTML:', deptSubjectsHtml);
+        $('#departmentSubjectsCheckboxes').html(deptSubjectsHtml);
+    }
+    
+    function updateDepartmentSubjectsVisibility(selectedDeptIds) {
+        console.log('updateDepartmentSubjectsVisibility called with:', selectedDeptIds);
+        
+        // Hide all department subject groups
+        $('.department-subjects-group').hide();
+        
+        // Show only selected departments
+        if (selectedDeptIds && selectedDeptIds.length > 0) {
+            selectedDeptIds.forEach(function(deptId) {
+                $(`.department-subjects-group[data-department-id='${deptId}']`).show();
+            });
+        }
+    }
+    
+    function renderAllDepartmentSections() {
+        console.log('renderAllDepartmentSections called');
+        
+        if (!window.lastSectionsData || !window.lastDepartmentsData) {
+            console.log('renderAllDepartmentSections - early return, data not available');
+            $('#departmentSectionsCheckboxes').html('');
+            return;
+        }
+        
+        var assignedSections = window.lastClassDetails.sections || [];
+        var assignedMap = {};
+        
+        // Group assigned sections by department
+        assignedSections.forEach(function(s) {
+            var deptId = s.department_id || 'global';
+            if (!assignedMap[deptId]) assignedMap[deptId] = [];
+            assignedMap[deptId].push(s.id.toString());
+        });
+        
+        var deptSectionsHtml = '';
+        
+        // Render sections for ALL departments
+        window.lastDepartmentsData.forEach(function(dept) {
+            if (dept.id == 0) return; // Skip "None" department
+            console.log('Processing department for sections:', dept);
+            deptSectionsHtml += `<div class='mb-3 department-sections-group' data-department-id='${dept.id}'>
+                <div class='fw-bold mb-2'>${dept.name}:</div>
+                <div class='d-flex flex-wrap'>`;
+            window.lastSectionsData.forEach(function(section) {
+                if (section.id == 0) return;
+                var checked = (assignedMap[dept.id] || []).includes(section.id.toString()) ? 'checked' : '';
+                deptSectionsHtml += `<div class='form-check me-3 mb-2'>
+                    <input class='form-check-input section-checkbox' type='checkbox' value='${section.id}' data-department-id='${dept.id}' id='dept_section_${section.id}_${dept.id}' ${checked}>
+                    <label class='form-check-label' for='dept_section_${section.id}_${dept.id}'>${section.name}</label>
+                </div>`;
+            });
+            deptSectionsHtml += `</div></div>`;
+        });
+        console.log('Generated all department sections HTML:', deptSectionsHtml);
+        $('#departmentSectionsCheckboxes').html(deptSectionsHtml);
+    }
+    
+    function updateDepartmentSectionsVisibility(selectedDeptIds) {
+        console.log('updateDepartmentSectionsVisibility called with:', selectedDeptIds);
+        
+        // Hide all department section groups
+        $('.department-sections-group').hide();
+        
+        // Show only selected departments
+        if (selectedDeptIds && selectedDeptIds.length > 0) {
+            selectedDeptIds.forEach(function(deptId) {
+                $(`.department-sections-group[data-department-id='${deptId}']`).show();
+            });
+        }
+    }
+    
+    function renderDepartmentSubjects(selectedDeptIds) {
+        console.log('renderDepartmentSubjects called with:', selectedDeptIds);
+        console.log('window.lastSubjectsData:', window.lastSubjectsData);
+        console.log('window.lastDepartmentsData:', window.lastDepartmentsData);
+        
+        if (!window.lastSubjectsData || !selectedDeptIds || selectedDeptIds.length === 0) {
+            console.log('renderDepartmentSubjects - early return, conditions not met');
+            $('#departmentSubjectsCheckboxes').html('');
+            return;
+        }
+        
+        var assignedSubjects = window.lastClassDetails.subjects || [];
+        var assignedMap = {};
+        
+        // Group assigned subjects by department
+        assignedSubjects.forEach(function(s) {
+            var deptId = s.department_id || 'global';
+            if (!assignedMap[deptId]) assignedMap[deptId] = [];
+            assignedMap[deptId].push(s.subject_id.toString());
+        });
+        
+        var deptSubjectsHtml = '';
+        var selectedDepartments = window.lastDepartmentsData.filter(d => selectedDeptIds.includes(d.id));
+        
+        selectedDepartments.forEach(function(dept) {
+            console.log('Processing department:', dept);
+            deptSubjectsHtml += `<div class='mb-3'>
+                <div class='fw-bold'>${dept.name}:</div>`;
+            window.lastSubjectsData.forEach(function(subject) {
+                if (subject.id == 0) return;
+                var checked = (assignedMap[dept.id] || []).includes(subject.id.toString()) ? 'checked' : '';
+                deptSubjectsHtml += `<div class='form-check ms-3'>
+                    <input class='form-check-input subject-checkbox' type='checkbox' value='${subject.id}' data-department-id='${dept.id}' id='dept_subject_${subject.id}_${dept.id}' ${checked}>
+                    <label class='form-check-label' for='dept_subject_${subject.id}_${dept.id}'>${subject.name}</label>
+                </div>`;
+            });
+            deptSubjectsHtml += `</div>`;
+        });
+        console.log('Generated department subjects HTML:', deptSubjectsHtml);
+        $('#departmentSubjectsCheckboxes').html(deptSubjectsHtml);
+    }
+    
+    function renderSectionsInModal(sections, classDetails, hasDepartments, selectedDeptIds) {
                     var assignedSections = classDetails.sections || [];
                     var assignedMap = {};
                     
+        // Group assigned sections by department
                     assignedSections.forEach(function(s) {
-                        var deptId = String(s.department_id || 0);
+            var deptId = s.department_id || 'global';
                         if (!assignedMap[deptId]) assignedMap[deptId] = [];
-                        assignedMap[deptId].push(String(s.id));
-                    });
-                    
-                    var html = '';
-                    if (departments.length > 0) {
-                        // Grouped by department
-                        departments.forEach(function(dept) {
-                            html += `<div class='mb-2'><strong>${dept.name}</strong></div>`;
-                            sectionRes.data.forEach(function(section) {
+            assignedMap[deptId].push(s.id.toString());
+        });
+        
+        // Global sections (no department)
+        var globalSectionsHtml = '';
+        sections.forEach(function(section) {
                                 if (section.id == 0) return;
-                                var checked = (assignedMap[String(dept.id)] || []).includes(String(section.id)) ? 'checked' : '';
-
-                                html += `<div class='form-check ms-3'>
-                                    <input class='form-check-input section-checkbox' type='checkbox' value='${section.id}' data-department-id='${dept.id}' id='sectionCheck${section.id}_${dept.id}' name='sections_${dept.id}[]' ${checked}>
-                                    <label class='form-check-label' for='sectionCheck${section.id}_${dept.id}'>${section.name}</label>
+            var checked = (assignedMap['global'] || []).includes(section.id.toString()) ? 'checked' : '';
+            globalSectionsHtml += `<div class='form-check'>
+                <input class='form-check-input section-checkbox' type='checkbox' value='${section.id}' data-department-id='global' id='global_section_${section.id}' ${checked}>
+                <label class='form-check-label' for='global_section_${section.id}'>${section.name}</label>
+            </div>`;
+        });
+        $('#globalSectionsCheckboxes').html(globalSectionsHtml);
+        
+        // Department sections
+        console.log('renderSectionsInModal - hasDepartments:', hasDepartments);
+        console.log('renderSectionsInModal - selectedDeptIds:', selectedDeptIds);
+        console.log('renderSectionsInModal - classDetails.departments:', classDetails.departments);
+        
+        if (hasDepartments && selectedDeptIds && selectedDeptIds.length > 0) {
+            var deptSectionsHtml = '';
+            // Use selectedDeptIds to get department details from window.lastDepartmentsData
+            var selectedDepartments = window.lastDepartmentsData.filter(d => selectedDeptIds.includes(d.id));
+            
+            selectedDepartments.forEach(function(dept) {
+                deptSectionsHtml += `<div class='mb-3'>
+                    <div class='fw-bold'>${dept.name}:</div>`;
+                sections.forEach(function(section) {
+                    if (section.id == 0) return;
+                    var checked = (assignedMap[dept.id] || []).includes(section.id.toString()) ? 'checked' : '';
+                    deptSectionsHtml += `<div class='form-check ms-3'>
+                        <input class='form-check-input section-checkbox' type='checkbox' value='${section.id}' data-department-id='${dept.id}' id='dept_section_${section.id}_${dept.id}' ${checked}>
+                        <label class='form-check-label' for='dept_section_${section.id}_${dept.id}'>${section.name}</label>
                                 </div>`;
                             });
+                deptSectionsHtml += `</div>`;
                         });
+            $('#departmentSectionsCheckboxes').html(deptSectionsHtml);
+            console.log('Department sections HTML generated:', deptSectionsHtml);
                     } else {
-                        // Flat list
-                        var assignedIds = assignedSections.map(s => String(s.id));
-
-                        sectionRes.data.forEach(function(section) {
-                            if (section.id == 0) return;
-                            var checked = assignedIds.includes(String(section.id)) ? 'checked' : '';
-
-                            html += `<div class='form-check'>
-                                <input class='form-check-input section-checkbox' type='checkbox' value='${section.id}' data-department-id='0' id='sectionCheck${section.id}' name='sections[]' ${checked}>
-                                <label class='form-check-label' for='sectionCheck${section.id}'>${section.name}</label>
+            console.log('Department sections not rendered - condition not met');
+            $('#departmentSectionsCheckboxes').html('');
+        }
+    }
+    
+    function renderSubjectsInModal(subjects, classDetails, hasDepartments, selectedDeptIds) {
+        var assignedSubjects = classDetails.subjects || [];
+        var assignedMap = {};
+        
+        // Group assigned subjects by department
+        assignedSubjects.forEach(function(s) {
+            var deptId = s.department_id || 'global';
+            if (!assignedMap[deptId]) assignedMap[deptId] = [];
+            assignedMap[deptId].push(s.subject_id.toString());
+        });
+        
+        // Global subjects (no department)
+        var globalSubjectsHtml = '';
+        subjects.forEach(function(subject) {
+            if (subject.id == 0) return;
+            var checked = (assignedMap['global'] || []).includes(subject.id.toString()) ? 'checked' : '';
+            globalSubjectsHtml += `<div class='form-check'>
+                <input class='form-check-input subject-checkbox' type='checkbox' value='${subject.id}' data-department-id='global' id='global_subject_${subject.id}' ${checked}>
+                <label class='form-check-label' for='global_subject_${subject.id}'>${subject.name}</label>
                             </div>`;
                         });
-                    }
-                    $('#editClassSectionsCheckboxes').html(html);
-                }
-                // Use lastClassDetails if available, else fetch
-                if (window.lastClassDetails) {
-                    renderSectionsModal(window.lastClassDetails);
-                } else {
-                    $.get('../api/get_class_details.php', { class_id: classId }, function(res) {
-                        if (res.success) renderSectionsModal(res);
-                    });
-                }
-            } else {
-                $('#editClassSectionsCheckboxes').html('<div class="alert alert-danger">Failed to load sections.</div>');
-            }
-        });
-    });
-    $('#editSectionsForm').on('submit', function(e) {
-        e.preventDefault();
-        var selected = [];
-        var prevAssigned = [];
-        if (window.lastClassDetails && Array.isArray(window.lastClassDetails.sections)) {
-            prevAssigned = window.lastClassDetails.sections.map(s => ({id: String(s.id), department_id: String(s.department_id || 0)}));
+        $('#globalSubjectsCheckboxes').html(globalSubjectsHtml);
+        
+        // Department subjects
+        console.log('renderSubjectsInModal - hasDepartments:', hasDepartments);
+        console.log('renderSubjectsInModal - selectedDeptIds:', selectedDeptIds);
+        console.log('renderSubjectsInModal - classDetails.departments:', classDetails.departments);
+        
+        if (hasDepartments && selectedDeptIds && selectedDeptIds.length > 0) {
+            var deptSubjectsHtml = '';
+            // Use selectedDeptIds to get department details from window.lastDepartmentsData
+            var selectedDepartments = window.lastDepartmentsData.filter(d => selectedDeptIds.includes(d.id));
+            
+            selectedDepartments.forEach(function(dept) {
+                deptSubjectsHtml += `<div class='mb-3'>
+                    <div class='fw-bold'>${dept.name}:</div>`;
+                subjects.forEach(function(subject) {
+                    if (subject.id == 0) return;
+                    var checked = (assignedMap[dept.id] || []).includes(subject.id.toString()) ? 'checked' : '';
+                    deptSubjectsHtml += `<div class='form-check ms-3'>
+                        <input class='form-check-input subject-checkbox' type='checkbox' value='${subject.id}' data-department-id='${dept.id}' id='dept_subject_${subject.id}_${dept.id}' ${checked}>
+                        <label class='form-check-label' for='dept_subject_${subject.id}_${dept.id}'>${subject.name}</label>
+                    </div>`;
+                });
+                deptSubjectsHtml += `</div>`;
+            });
+            $('#departmentSubjectsCheckboxes').html(deptSubjectsHtml);
+            console.log('Department subjects HTML generated:', deptSubjectsHtml);
+        } else {
+            console.log('Department subjects not rendered - condition not met');
+            $('#departmentSubjectsCheckboxes').html('');
         }
-        // Gather selected department-section pairs
-        $('#editClassSectionsCheckboxes .section-checkbox:checked').each(function() {
-            selected.push({id: $(this).val(), department_id: $(this).data('department-id').toString()});
+    }
+    
+    // Handle main option checkboxes
+    $('#hasDepartmentsCheck, #hasSectionsCheck').on('change', function() {
+        var hasDepts = $('#hasDepartmentsCheck').is(':checked');
+        var hasSections = $('#hasSectionsCheck').is(':checked');
+        
+        // If departments are unchecked, uncheck all department checkboxes
+        if (!hasDepts) {
+            $('.department-checkbox').prop('checked', false);
+        }
+        
+        // Update modal sections based on current state
+                if (window.lastClassDetails) {
+            updateModalSections(hasDepts, hasSections, window.lastClassDetails);
+        }
+    });
+    
+    // Handle department checkbox changes
+    $(document).on('change', '.department-checkbox', function() {
+        console.log('Department checkbox changed!');
+        console.log('This checkbox value:', $(this).val());
+        console.log('This checkbox checked:', $(this).is(':checked'));
+        
+        // Update modal sections when departments change
+        if (window.lastClassDetails) {
+            var hasDepts = $('#hasDepartmentsCheck').is(':checked');
+            var hasSections = $('#hasSectionsCheck').is(':checked');
+            var selectedDepts = $('.department-checkbox:checked').map(function() {
+                return parseInt($(this).val());
+            }).get();
+            
+            console.log('Department checkbox change - selectedDepts:', selectedDepts);
+            
+            // Update visibility based on selected departments
+            if (hasDepts && !hasSections) {
+                // Only departments checked - update subjects visibility
+                updateDepartmentSubjectsVisibility(selectedDepts);
+            } else if (hasDepts && hasSections) {
+                // Both checked - update both sections and subjects visibility
+                updateDepartmentSectionsVisibility(selectedDepts);
+                updateDepartmentSubjectsVisibility(selectedDepts);
+            }
+        }
+    });
+    
+    // Handle form submission
+    $('#editClassStructureForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        var hasDepartments = $('#hasDepartmentsCheck').is(':checked');
+        var hasSections = $('#hasSectionsCheck').is(':checked');
+        var selectedDepartments = $('.department-checkbox:checked').map(function() {
+            return parseInt($(this).val());
+        }).get();
+        
+        var selectedSections = [];
+        var selectedSubjects = [];
+        
+        // Gather selected sections
+        $('.section-checkbox:checked').each(function() {
+            var sectionId = parseInt($(this).val());
+            var deptId = $(this).data('department-id');
+            var departmentId = (deptId === 'global') ? null : deptId;
+            selectedSections.push({id: sectionId, department_id: departmentId});
         });
-        // Find pairs to add and remove
-        function pairKey(pair) { return pair.id + '_' + pair.department_id; }
-        var prevKeys = prevAssigned.map(pairKey);
-        var selectedKeys = selected.map(pairKey);
-        var toAdd = selected.filter(pair => !prevKeys.includes(pairKey(pair)));
-        var toRemove = prevAssigned.filter(pair => !selectedKeys.includes(pairKey(pair)));
-        var requests = [];
-        toAdd.forEach(function(pair) {
-            requests.push($.post('../api/assign_sections_to_class.php', {
+        
+        // Gather selected subjects
+        $('.subject-checkbox:checked').each(function() {
+            var subjectId = parseInt($(this).val());
+            var deptId = $(this).data('department-id');
+            var departmentId = (deptId === 'global') ? null : deptId;
+            selectedSubjects.push({id: subjectId, department_id: departmentId});
+        });
+        
+        console.log('Form submission - hasDepartments:', hasDepartments);
+        console.log('Form submission - hasSections:', hasSections);
+        console.log('Form submission - selectedDepartments:', selectedDepartments);
+        console.log('Form submission - selectedSections:', selectedSections);
+        console.log('Form submission - selectedSubjects:', selectedSubjects);
+        
+        // Save all changes
+        saveClassStructure(hasDepartments, hasSections, selectedDepartments, selectedSections, selectedSubjects);
+    });
+    
+    function saveClassStructure(hasDepartments, hasSections, selectedDepartments, selectedSections, selectedSubjects) {
+        var promises = [];
+        
+        // Get current assignments for comparison
+        var currentDepartments = window.lastClassDetails.departments || [];
+        var currentSections = window.lastClassDetails.sections || [];
+        var currentSubjects = window.lastClassDetails.subjects || [];
+        
+        console.log('saveClassStructure - currentDepartments:', currentDepartments);
+        console.log('saveClassStructure - currentSections:', currentSections);
+        console.log('saveClassStructure - currentSubjects:', currentSubjects);
+        
+        // Handle departments
+        if (hasDepartments) {
+            // Add new departments
+            selectedDepartments.forEach(function(deptId) {
+                if (!currentDepartments.some(d => d.id == deptId)) {
+                    promises.push($.post('../api/assign_department_to_class.php', {
+                        class_id: classId,
+                        department_id: deptId,
+                        action: 'add'
+                    }));
+                }
+            });
+            
+            // Remove unselected departments
+            currentDepartments.forEach(function(dept) {
+                if (!selectedDepartments.includes(dept.id)) {
+                    promises.push($.post('../api/assign_department_to_class.php', {
+                        class_id: classId,
+                        department_id: dept.id,
+                        action: 'remove'
+                    }));
+                }
+            });
+            } else {
+            // Remove all departments if departments are unchecked
+            currentDepartments.forEach(function(dept) {
+                promises.push($.post('../api/assign_department_to_class.php', {
+                    class_id: classId,
+                    department_id: dept.id,
+                    action: 'remove'
+                }));
+            });
+        }
+        
+        // Handle sections based on hasSections flag
+        if (hasSections) {
+            var currentSectionsMap = {};
+            currentSections.forEach(function(section) {
+                var key = section.id + '_' + (section.department_id || 'global');
+                currentSectionsMap[key] = true;
+            });
+            
+            var selectedSectionsMap = {};
+            selectedSections.forEach(function(section) {
+                var key = section.id + '_' + (section.department_id || 'global');
+                selectedSectionsMap[key] = true;
+            });
+            
+            // Add new sections
+            selectedSections.forEach(function(section) {
+                var key = section.id + '_' + (section.department_id || 'global');
+                if (!currentSectionsMap[key]) {
+                    promises.push($.post('../api/assign_sections_to_class.php', {
+                        class_id: classId,
+                        section_id: section.id,
+                        department_id: section.department_id,
+                        action: 'add'
+                    }));
+                }
+            });
+            
+            // Remove unselected sections
+            currentSections.forEach(function(section) {
+                var key = section.id + '_' + (section.department_id || 'global');
+                if (!selectedSectionsMap[key]) {
+                    promises.push($.post('../api/assign_sections_to_class.php', {
                 class_id: classId,
-                section_id: pair.id,
-                department_id: pair.department_id,
+                        section_id: section.id,
+                        department_id: section.department_id,
+                        action: 'remove'
+                    }));
+                }
+            });
+        } else {
+            // Remove all sections if sections are unchecked
+            currentSections.forEach(function(section) {
+                promises.push($.post('../api/assign_sections_to_class.php', {
+                    class_id: classId,
+                    section_id: section.id,
+                    department_id: section.department_id,
+                    action: 'remove'
+                }));
+            });
+        }
+        
+        // Handle subjects (always present, but logic depends on departments)
+        var currentSubjectsMap = {};
+        currentSubjects.forEach(function(subject) {
+            var key = subject.subject_id + '_' + (subject.department_id || 'global');
+            currentSubjectsMap[key] = true;
+        });
+        
+        var selectedSubjectsMap = {};
+        selectedSubjects.forEach(function(subject) {
+            var key = subject.id + '_' + (subject.department_id || 'global');
+            selectedSubjectsMap[key] = true;
+        });
+        
+        // Add new subjects
+        selectedSubjects.forEach(function(subject) {
+            var key = subject.id + '_' + (subject.department_id || 'global');
+            if (!currentSubjectsMap[key]) {
+                promises.push($.post('../api/assign_subject_to_class.php', {
+                    class_id: classId,
+                    subject_id: subject.id,
+                    department_id: subject.department_id,
                 action: 'add'
             }));
+            }
         });
-        toRemove.forEach(function(pair) {
-            requests.push($.post('../api/assign_sections_to_class.php', {
+        
+        // Remove unselected subjects
+        currentSubjects.forEach(function(subject) {
+            var key = subject.subject_id + '_' + (subject.department_id || 'global');
+            if (!selectedSubjectsMap[key]) {
+                promises.push($.post('../api/assign_subject_to_class.php', {
                 class_id: classId,
-                section_id: pair.id,
-                department_id: pair.department_id,
+                    subject_id: subject.subject_id,
+                    department_id: subject.department_id,
                 action: 'remove'
             }));
+            }
         });
-        $.when.apply($, requests).done(function() {
-            $('#editSectionsModal').modal('hide');
+        
+        // Execute all promises
+        Promise.all(promises).then(function() {
+            $('#editClassStructureModal').modal('hide');
             loadClassDetails();
-        }).fail(function() {
-            alert('Failed to update sections.');
+            alert('Class structure updated successfully!');
+        }).catch(function() {
+            alert('Some changes failed to save. Please try again.');
         });
-    });
-    // TODO: Populate department, subject, and teacher selects with available options (AJAX or server-side)
+    }
 });
 
 function renderDepartments(departments) {
@@ -852,67 +1244,123 @@ function renderDepartments(departments) {
 }
 
 function renderSubjects(subjects, teachers, departments) {
-    // Only treat as 'has departments' if there is at least one department with id != 0
-    var hasRealDepartments = departments && departments.length > 0 && departments.some(d => d.id != 0);
     var html = '';
-    if (hasRealDepartments) {
-        // For each department (id != 0), show its subjects and assigned teachers
-        departments.filter(d => d.id != 0).forEach(function(dept) {
-            subjects.filter(s => String(s.department_id) == String(dept.id)).forEach(function(subj) {
+    var subjectsWithDepts = subjects.filter(s => s.department_id && s.department_id !== null && s.department_id !== 0);
+    var independentSubjects = subjects.filter(s => !s.department_id || s.department_id === null || s.department_id === 0);
+    
+    // Show subjects with departments first (if any)
+    if (subjectsWithDepts.length > 0) {
+        // Group by department using rowspan
+        var deptGroups = {};
+        subjectsWithDepts.forEach(function(subject) {
+            if (!deptGroups[subject.department_id]) {
+                deptGroups[subject.department_id] = {
+                    name: subject.department_name,
+                    subjects: []
+                };
+            }
+            deptGroups[subject.department_id].subjects.push(subject);
+        });
+        
+        Object.values(deptGroups).forEach(function(deptGroup) {
+            deptGroup.subjects.forEach(function(subject, index) {
                 // Find all teachers for this subject and department
                 var teacherNames = teachers
-                    .filter(t => t.subject_id == subj.subject_id && String(t.department_id) == String(dept.id))
+                    .filter(t => t.subject_id == subject.subject_id && String(t.department_id) == String(subject.department_id))
                     .map(t => t.first_name + ' ' + t.last_name);
-                html += `<tr>
-                    <td>${dept.name}</td>
-                    <td>${subj.name}</td>
-                    <td>${teacherNames.join(', ')}</td>
-                </tr>`;
+                
+                if (index === 0) {
+                    // First subject for this department - include department name with rowspan
+                    html += `<tr><td rowspan="${deptGroup.subjects.length}">${deptGroup.name}</td><td>${subject.name}</td><td>${teacherNames.join(', ')}</td></tr>`;
+                } else {
+                    // Additional subjects for this department - no department name
+                    html += `<tr><td>${subject.name}</td><td>${teacherNames.join(', ')}</td></tr>`;
+                }
             });
         });
         $('#subjectsList thead').html('<tr><th>Department</th><th>Subject</th><th>Teachers</th></tr>');
-    } else {
-        subjects.forEach(function(subj) {
+    }
+    
+    // Show independent subjects (if any)
+    if (independentSubjects.length > 0) {
+        independentSubjects.forEach(function(subject) {
             // Find all teachers for this subject (no department or department_id == 0)
             var teacherNames = teachers
-                .filter(t => t.subject_id == subj.subject_id && (!t.department_id || t.department_id == 0))
+                .filter(t => t.subject_id == subject.subject_id && (!t.department_id || t.department_id == 0))
                 .map(t => t.first_name + ' ' + t.last_name);
-            html += `<tr>
-                <td>${subj.name}</td>
-                <td>${teacherNames.join(', ')}</td>
-            </tr>`;
+            
+            if (subjectsWithDepts.length > 0) {
+                // If we have subjects with departments, add department column as empty
+                html += `<tr><td></td><td>${subject.name}</td><td>${teacherNames.join(', ')}</td></tr>`;
+            } else {
+                // Only independent subjects - no department column
+                html += `<tr><td>${subject.name}</td><td>${teacherNames.join(', ')}</td></tr>`;
+            }
         });
+    }
+    
+    // Show/hide department header based on whether we have subjects with departments
+    if (subjectsWithDepts.length > 0) {
+        $('#subjectsList thead').html('<tr><th>Department</th><th>Subject</th><th>Teachers</th></tr>');
+    } else {
         $('#subjectsList thead').html('<tr><th>Subject</th><th>Teachers</th></tr>');
     }
+    
     $('#subjectsList tbody').html(html);
 }
 
 function renderSectionsTable(sections, departments) {
-    var hasRealDepartments = departments && departments.length > 0 && departments.some(d => d.id != 0);
     var html = '';
-    if (hasRealDepartments) {
+    var sectionsWithDepts = sections.filter(s => s.department_id && s.department_id !== null);
+    var independentSections = sections.filter(s => !s.department_id || s.department_id === null);
+    
+    // Show sections with departments first (if any)
+    if (sectionsWithDepts.length > 0) {
         // Group by department using rowspan
-        departments.filter(d => d.id != 0).forEach(function(dept) {
-            var deptSections = sections.filter(s => String(s.department_id) === String(dept.id));
-            if (deptSections.length > 0) {
-                deptSections.forEach(function(section, index) {
+        var deptGroups = {};
+        sectionsWithDepts.forEach(function(section) {
+            if (!deptGroups[section.department_id]) {
+                deptGroups[section.department_id] = {
+                    name: section.department_name,
+                    sections: []
+                };
+            }
+            deptGroups[section.department_id].sections.push(section);
+        });
+        
+        Object.values(deptGroups).forEach(function(deptGroup) {
+            deptGroup.sections.forEach(function(section, index) {
                     if (index === 0) {
                         // First section for this department - include department name with rowspan
-                        html += `<tr><td rowspan="${deptSections.length}">${dept.name}</td><td>${section.name}</td></tr>`;
+                    html += `<tr><td rowspan="${deptGroup.sections.length}">${deptGroup.name}</td><td>${section.name}</td></tr>`;
                     } else {
                         // Additional sections for this department - no department name
                         html += `<tr><td>${section.name}</td></tr>`;
                     }
                 });
-            }
         });
         $('#sectionsDeptHeader').show();
+    }
+    
+    // Show independent sections (if any)
+    if (independentSections.length > 0) {
+        independentSections.forEach(function(section) {
+            if (sectionsWithDepts.length > 0) {
+                // If we have sections with departments, add department column as empty
+                html += `<tr><td></td><td>${section.name}</td></tr>`;
     } else {
-        // Flat list - only one column for section names
-        sections.forEach(function(section) {
+                // Only independent sections - no department column
             html += `<tr><td>${section.name}</td></tr>`;
+            }
         });
+    }
+    
+    // Show/hide department header based on whether we have sections with departments
+    if (sectionsWithDepts.length > 0) {
+        $('#sectionsDeptHeader').show();
+    } else {
         $('#sectionsDeptHeader').hide();
     }
+    
     $('#sectionsList tbody').html(html);
 } 

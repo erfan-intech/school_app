@@ -7,7 +7,6 @@ $last_name = $_POST['last_name'] ?? '';
 $dob = $_POST['dob'] ?? '';
 $gender = $_POST['gender'] ?? '';
 $address = $_POST['address'] ?? '';
-$department_id = isset($_POST['department_id']) && $_POST['department_id'] !== '' ? $_POST['department_id'] : null;
 $position = $_POST['position'] ?? '';
 $join_date = $_POST['join_date'] ?? '';
 $leave_date = $_POST['leave_date'] ?? null;
@@ -48,8 +47,8 @@ $user_id = $stmt->insert_id;
 $stmt->close();
 
 // 2. Create teacher
-$stmt = $conn->prepare("INSERT INTO teachers (user_id, first_name, last_name, dob, gender, phone, email, address, department_id, position, profile_picture, join_date, leave_date, salary) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-$stmt->bind_param('isssssssissssd', $user_id, $first_name, $last_name, $dob, $gender, $phone, $email, $address, $department_id, $position, $profile_picture, $join_date, $leave_date, $salary);
+$stmt = $conn->prepare("INSERT INTO teachers (user_id, first_name, last_name, dob, gender, phone, email, address, position, profile_picture, join_date, leave_date, salary, is_deleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)");
+$stmt->bind_param('isssssssssssd', $user_id, $first_name, $last_name, $dob, $gender, $phone, $email, $address, $position, $profile_picture, $join_date, $leave_date, $salary);
 $success = $stmt->execute();
 if ($success) {
     echo json_encode(['success' => true, 'message' => 'Teacher added successfully.']);

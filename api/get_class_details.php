@@ -6,9 +6,9 @@ if (!$class_id) {
     echo json_encode(['success' => false, 'message' => 'Class ID required.']);
     exit;
 }
-// Get assigned departments
+// Get assigned departments (independent departments - department_id exists, section_id is null)
 $departments = [];
-$sql = 'SELECT DISTINCT d.id, d.name FROM class_departments cd JOIN departments d ON cd.department_id = d.id WHERE cd.class_id=? and cd.department_id != 0';
+$sql = 'SELECT DISTINCT d.id, d.name FROM class_dept_sec cd JOIN departments d ON cd.department_id = d.id WHERE cd.class_id=? AND cd.department_id IS NOT NULL AND cd.section_id IS NULL AND cd.is_deleted = 0';
 $stmt = $conn->prepare($sql);
 $stmt->bind_param('i', $class_id);
 $stmt->execute();
@@ -19,7 +19,7 @@ while ($row = $result->fetch_assoc()) {
 $stmt->close();
 // Get assigned subjects (with/without department)
 $subjects = [];
-$sql = 'SELECT cs.id, cs.subject_id, s.name, cs.department_id, d.name AS department_name FROM class_subjects cs JOIN subjects s ON cs.subject_id = s.id LEFT JOIN departments d ON cs.department_id = d.id WHERE cs.class_id=?';
+$sql = 'SELECT cs.id, cs.subject_id, s.name, cs.department_id, d.name AS department_name FROM class_dept_sub cs JOIN subjects s ON cs.subject_id = s.id LEFT JOIN departments d ON cs.department_id = d.id WHERE cs.class_id=? AND cs.is_deleted = 0';
 $stmt = $conn->prepare($sql);
 $stmt->bind_param('i', $class_id);
 $stmt->execute();
@@ -30,7 +30,7 @@ while ($row = $result->fetch_assoc()) {
 $stmt->close();
 // Get assigned teachers (with subjects)
 $teachers = [];
-$sql = 'SELECT ct.id, t.id AS teacher_id, t.user_id AS teacher_user_id, t.first_name, t.last_name, t.profile_picture, s.id AS subject_id, s.name AS subject_name, ct.department_id, d.name AS department_name FROM class_teachers ct JOIN teachers t ON ct.teacher_id = t.id LEFT JOIN subjects s ON ct.subject_id = s.id LEFT JOIN departments d ON ct.department_id = d.id WHERE ct.class_id=?';
+$sql = 'SELECT ct.id, t.id AS teacher_id, t.user_id AS teacher_user_id, t.first_name, t.last_name, t.profile_picture, s.id AS subject_id, s.name AS subject_name, ct.department_id, d.name AS department_name FROM class_dept_sub_teacher ct JOIN teachers t ON ct.teacher_id = t.id LEFT JOIN subjects s ON ct.subject_id = s.id LEFT JOIN departments d ON ct.department_id = d.id WHERE ct.class_id=? AND ct.is_deleted = 0';
 $stmt = $conn->prepare($sql);
 $stmt->bind_param('i', $class_id);
 $stmt->execute();
@@ -88,9 +88,9 @@ $stmt->execute();
 $stmt->bind_result($class_name);
 $stmt->fetch();
 $stmt->close();
-// Get assigned sections
+// Get assigned sections (both independent and with departments)
 $sections = [];
-$sql = 'SELECT DISTINCT s.id, s.name, cd.department_id FROM class_departments cd JOIN sections s ON cd.section_id = s.id WHERE cd.class_id = ? AND cd.section_id != 0';
+$sql = 'SELECT DISTINCT s.id, s.name, cd.department_id, d.name AS department_name FROM class_dept_sec cd JOIN sections s ON cd.section_id = s.id LEFT JOIN departments d ON cd.department_id = d.id WHERE cd.class_id = ? AND cd.section_id IS NOT NULL AND cd.is_deleted = 0';
 $stmt = $conn->prepare($sql);
 $stmt->bind_param('i', $class_id);
 $stmt->execute();

@@ -1,26 +1,59 @@
+// Alert function for showing messages
+function showAlert(message, type = 'info') {
+    const alertClass = type === 'success' ? 'alert-success' : 
+                      type === 'danger' ? 'alert-danger' : 
+                      type === 'warning' ? 'alert-warning' : 'alert-info';
+    
+    const alertHtml = `
+        <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    `;
+    
+    // Remove existing alerts
+    $('.alert').remove();
+    
+    // Add new alert at the top of the container
+    $('.container').prepend(alertHtml);
+    
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => {
+        $('.alert').fadeOut();
+    }, 5000);
+}
+
 $(document).ready(function() {
+    // Initialize the universal table sorter for parents
+    var parentsTableSorter = initUniversalTableSorter('#parentsTable', {
+        itemsPerPage: 10,
+        enablePagination: true,
+        enableSearch: true,
+        enableViewAll: true,
+        searchSelector: '#parentSearch',
+        paginationSelector: '#pagination',
+        viewAllSelector: '#viewAllBtn',
+        searchFields: ['first_name last_name', 'phone', 'email', 'address', 'gender'],
+        sortHandlers: {
+            'sl_no': function(a, b, direction) {
+                const aVal = parseInt(a.sl_no);
+                const bVal = parseInt(b.sl_no);
+                return direction === 'asc' ? aVal - bVal : bVal - aVal;
+            },
+            'name': function(a, b, direction) {
+                const aVal = (a.first_name + ' ' + (a.last_name || '')).toLowerCase();
+                const bVal = (b.first_name + ' ' + (b.last_name || '')).toLowerCase();
+                if (aVal < bVal) return direction === 'asc' ? -1 : 1;
+                if (aVal > bVal) return direction === 'asc' ? 1 : -1;
+                return 0;
+            }
+        }
+    });
+
     function loadParents() {
         $.get('../api/get_parents.php', function(res) {
             if (res.success) {
-                let rows = '';
-                res.data.forEach(function(p) {
-                    let pic = p.profile_picture ? `<img src='../uploads/parents/${p.profile_picture}' alt='Profile' width='40' height='40' style='object-fit:cover;border-radius:50%;'>` : '';
-                    rows += `<tr>
-                        <td>${p.id}</td>
-                        <td>${pic}</td>
-                        <td>${p.first_name}</td>
-                        <td>${p.last_name || ''}</td>
-                        <td>${p.gender || ''}</td>
-                        <td>${p.phone || ''}</td>
-                        <td>${p.email || ''}</td>
-                        <td>${p.address || ''}</td>
-                        <td class="text-end">
-                            <button class="btn btn-sm btn-warning editParentBtn" data-id="${p.id}">Edit</button>
-                            <button class="btn btn-sm btn-danger deleteParentBtn" data-id="${p.id}">Delete</button>
-                        </td>
-                    </tr>`;
-                });
-                $('#parentsTable tbody').html(rows);
+                parentsTableSorter.setData(res.data);
             }
         });
     }
@@ -68,6 +101,13 @@ $(document).ready(function() {
         e.preventDefault();
         const id = $('#parentId').val();
         const url = id ? '../api/update_parent.php' : '../api/add_parent.php';
+        const $form = $(this);
+        const $submitBtn = $form.find('button[type="submit"]');
+        const originalText = $submitBtn.text();
+        
+        // Show loading state
+        $submitBtn.prop('disabled', true).text('Saving...');
+        
         var formData = new FormData(this);
         $.ajax({
             url: url,
@@ -79,10 +119,18 @@ $(document).ready(function() {
             success: function(res) {
                 if (res.success) {
                     $('#parentModal').modal('hide');
+                    showAlert(res.message || 'Parent saved successfully!', 'success');
                     loadParents();
                 } else {
-                    alert(res.message);
+                    showAlert(res.message || 'Failed to save parent.', 'danger');
                 }
+            },
+            error: function() {
+                showAlert('Network error occurred. Please try again.', 'danger');
+            },
+            complete: function() {
+                // Reset button state
+                $submitBtn.prop('disabled', false).text(originalText);
             }
         });
     });
@@ -125,21 +173,30 @@ $(document).ready(function() {
 
     // Delete Parent
     $(document).on('click', '.deleteParentBtn', function() {
-        if (!confirm('Are you sure you want to delete this parent?')) return;
+        if (!confirm('Are you sure you want to delete this parent? This action cannot be undone.')) return;
         const id = $(this).data('id');
+        const $btn = $(this);
+        const originalText = $btn.text();
+        
+        // Show loading state
+        $btn.prop('disabled', true).text('Deleting...');
+        
         $.post('../api/delete_parent.php', {id}, function(res) {
             if (res.success) {
+                // Show success message
+                showAlert('Parent deleted successfully!', 'success');
                 loadParents();
             } else {
-                alert(res.message);
+                showAlert(res.message || 'Failed to delete parent.', 'danger');
             }
-        }, 'json');
-    });
-
-    $('#parentSearch').on('input', function() {
-        var value = $(this).val().toLowerCase();
-        $('#parentsTable tbody tr').filter(function() {
-            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+        }, 'json').fail(function() {
+            showAlert('Network error occurred. Please try again.', 'danger');
+        }).always(function() {
+            // Reset button state
+            $btn.prop('disabled', false).text(originalText);
         });
     });
+
+
+
 }); 

@@ -3,7 +3,7 @@ header('Content-Type: application/json');
 include '../includes/db_connect.php';
 
 // $sql = "SELECT id, name FROM departments";
-$sql = "SELECT id, name FROM departments WHERE id != 0 AND name != 'None'";
+$sql = "SELECT id, name FROM departments WHERE id != 0 AND is_deleted=0";
 $result = $conn->query($sql);
 $departments = [];
 if ($result && $result->num_rows > 0) {

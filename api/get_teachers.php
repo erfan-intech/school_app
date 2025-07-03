@@ -6,14 +6,14 @@ include '../includes/db_connect.php';
 $search = isset($_GET['search']) ? $_GET['search'] : '';
 
 // Build SQL query with search
-$sql = "SELECT t.*, d.name AS department_name FROM teachers t LEFT JOIN departments d ON t.department_id = d.id WHERE t.is_deleted=0";
+$sql = "SELECT * FROM teachers WHERE is_deleted=0";
 
 if (!empty($search)) {
     $search = '%' . $search . '%';
-    $sql .= " AND (t.first_name LIKE ? OR t.last_name LIKE ? OR t.phone LIKE ? OR t.position LIKE ? OR t.id LIKE ?)";
+    $sql .= " AND (first_name LIKE ? OR last_name LIKE ? OR phone LIKE ? OR position LIKE ? OR id LIKE ? )";
 }
 
-$sql .= " ORDER BY t.id";
+$sql .= " ORDER BY id";
 
 $stmt = $conn->prepare($sql);
 

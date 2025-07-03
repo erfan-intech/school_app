@@ -12,19 +12,19 @@
 <body>
 <nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top">
   <div class="container-fluid">
-    <a class="navbar-brand" href="/pages/dashboard.php">SchoolApp</a>
+    <a class="navbar-brand" href="#">SchoolApp</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
-        <li class="nav-item"><a class="nav-link" href="dashboard.php">Dashboard</a></li>
-        <li class="nav-item"><a class="nav-link" href="/school_app/pages/teachers.php">Teachers</a></li>
-        <li class="nav-item"><a class="nav-link" href="/school_app/pages/students.php">Students</a></li>
-        <li class="nav-item"><a class="nav-link" href="/school_app/pages/parents.php">Parents</a></li>
-        <li class="nav-item"><a class="nav-link" href="/school_app/pages/classes.php">Classes</a></li>
-        <li class="nav-item"><a class="nav-link" href="/school_app/pages/subjects.php">Subjects</a></li>
-        <li class="nav-item"><a class="nav-link" href="/school_app/pages/attendance.php">Attendance</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" href="subjects.php">Subjects</a></li>
+        <li class="nav-item"><a class="nav-link" href="classes.php">Classes</a></li>
+        <li class="nav-item"><a class="nav-link" href="teachers.php">Teachers</a></li>
+        <li class="nav-item"><a class="nav-link" href="parents.php">Parents</a></li>
+        <li class="nav-item"><a class="nav-link" href="students.php">Students</a></li>
+        <li class="nav-item"><a class="nav-link" href="attendance.php">Attendance</a></li>
         <li class="nav-item"><a class="nav-link" href="/school_app/api/logout.php">Logout</a></li>
       </ul>
     </div>

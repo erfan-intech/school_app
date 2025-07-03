@@ -1,16 +1,4 @@
 <?php include '../includes/header.php'; ?>
-<?php
-// Fetch departments for dropdown
-include '../includes/db_connect.php';
-$departments = [];
-$result = $conn->query("SELECT id, name FROM departments");
-if ($result && $result->num_rows > 0) {
-    while ($row = $result->fetch_assoc()) {
-        $departments[] = $row;
-    }
-}
-$conn->close();
-?>
 <div class="container mt-4">
     <!-- Sticky Header Section -->
     <div class="sticky-header bg-white border-bottom pb-3 mb-3" style="position: sticky; top: 56px; z-index: 1000;">
@@ -26,8 +14,7 @@ $conn->close();
             <thead>
                 <tr>
                     <th class="sortable" data-sort="sl_no">SL No <i class="fas fa-sort"></i></th>
-                    <th class="sortable" data-sort="first_name">First Name <i class="fas fa-sort"></i></th>
-                    <th class="sortable" data-sort="last_name">Last Name <i class="fas fa-sort"></i></th>
+                    <th class="sortable" data-sort="name">Name <i class="fas fa-sort"></i></th>
                     <th class="sortable" data-sort="phone">Phone <i class="fas fa-sort"></i></th>
                     <th class="sortable" data-sort="position">Position <i class="fas fa-sort"></i></th>
                     <th>Profile Picture</th>
@@ -108,15 +95,6 @@ $conn->close();
           <div class="mb-3">
             <label for="address" class="form-label">Address</label>
             <input type="text" class="form-control" id="address" name="address">
-          </div>
-          <div class="mb-3">
-            <label for="department_id" class="form-label">Department</label>
-            <select class="form-select" id="department_id" name="department_id">
-              <option value="">No Department</option>
-              <?php foreach ($departments as $department): ?>
-                <option value="<?php echo $department['id']; ?>"><?php echo htmlspecialchars($department['name']); ?></option>
-              <?php endforeach; ?>
-            </select>
           </div>
           <div class="mb-3">
             <label for="position" class="form-label">Position</label>

@@ -13,8 +13,58 @@ $profile_picture = null;
 $remove_photo = isset($_POST['remove_photo']) ? $_POST['remove_photo'] : '0';
 
 if (!$id) {
-    echo json_encode(['success' => false, 'message' => 'Parent ID required.']);
+    echo json_encode(['success' => false, 'message' => 'Parent ID is required.']);
     exit;
+}
+
+// Check if parent exists
+$stmt = $conn->prepare('SELECT id, email, phone FROM parents WHERE id = ? AND is_deleted = 0');
+$stmt->bind_param('i', $id);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows === 0) {
+    echo json_encode(['success' => false, 'message' => 'Parent not found.']);
+    $stmt->close();
+    $conn->close();
+    exit;
+}
+
+$existingParent = $result->fetch_assoc();
+$stmt->close();
+
+// Validate email format if provided
+if ($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    echo json_encode(['success' => false, 'message' => 'Please enter a valid email address.']);
+    exit;
+}
+
+// Check if email already exists (excluding current parent)
+if ($email && $email !== $existingParent['email']) {
+    $stmt = $conn->prepare("SELECT id FROM parents WHERE email = ? AND id != ? AND is_deleted = 0");
+    $stmt->bind_param('si', $email, $id);
+    $stmt->execute();
+    if ($stmt->get_result()->num_rows > 0) {
+        echo json_encode(['success' => false, 'message' => 'Email address already exists.']);
+        $stmt->close();
+        $conn->close();
+        exit;
+    }
+    $stmt->close();
+}
+
+// Check if phone already exists (excluding current parent)
+if ($phone && $phone !== $existingParent['phone']) {
+    $stmt = $conn->prepare("SELECT id FROM parents WHERE phone = ? AND id != ? AND is_deleted = 0");
+    $stmt->bind_param('si', $phone, $id);
+    $stmt->execute();
+    if ($stmt->get_result()->num_rows > 0) {
+        echo json_encode(['success' => false, 'message' => 'Phone number already exists.']);
+        $stmt->close();
+        $conn->close();
+        exit;
+    }
+    $stmt->close();
 }
 
 // Handle file upload
@@ -55,9 +105,9 @@ if ($profile_picture) {
 }
 $success = $stmt->execute();
 if ($success) {
-    echo json_encode(['success' => true, 'message' => 'Parent updated successfully.']);
+    echo json_encode(['success' => true, 'message' => 'Parent information updated successfully.']);
 } else {
-    echo json_encode(['success' => false, 'message' => 'Failed to update parent.']);
+    echo json_encode(['success' => false, 'message' => 'Failed to update parent information.']);
 }
 $stmt->close();
 $conn->close(); 

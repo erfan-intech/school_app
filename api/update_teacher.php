@@ -8,7 +8,6 @@ $last_name = $_POST['last_name'] ?? '';
 $dob = $_POST['dob'] ?? '';
 $gender = $_POST['gender'] ?? '';
 $address = $_POST['address'] ?? '';
-$department_id = isset($_POST['department_id']) && $_POST['department_id'] !== '' ? $_POST['department_id'] : null;
 $position = $_POST['position'] ?? '';
 $join_date = $_POST['join_date'] ?? '';
 $leave_date = $_POST['leave_date'] ?? null;
@@ -53,11 +52,11 @@ if ($remove_photo === '1' && !$profile_picture) {
 }
 
 if ($profile_picture) {
-    $stmt = $conn->prepare("UPDATE teachers SET first_name=?, last_name=?, dob=?, gender=?, phone=?, email=?, address=?, department_id=?, position=?, profile_picture=?, join_date=?, leave_date=?, salary=? WHERE id=?");
-    $stmt->bind_param('ssssssssssssdi', $first_name, $last_name, $dob, $gender, $phone, $email, $address, $department_id, $position, $profile_picture, $join_date, $leave_date, $salary, $id);
+    $stmt = $conn->prepare("UPDATE teachers SET first_name=?, last_name=?, dob=?, gender=?, phone=?, email=?, address=?, position=?, profile_picture=?, join_date=?, leave_date=?, salary=? WHERE id=?");
+    $stmt->bind_param('sssssssssssdi', $first_name, $last_name, $dob, $gender, $phone, $email, $address, $position, $profile_picture, $join_date, $leave_date, $salary, $id);
 } else {
-    $stmt = $conn->prepare("UPDATE teachers SET first_name=?, last_name=?, dob=?, gender=?, phone=?, email=?, address=?, department_id=?, position=?, join_date=?, leave_date=?, salary=? WHERE id=?");
-    $stmt->bind_param('sssssssssssdi', $first_name, $last_name, $dob, $gender, $phone, $email, $address, $department_id, $position, $join_date, $leave_date, $salary, $id);
+    $stmt = $conn->prepare("UPDATE teachers SET first_name=?, last_name=?, dob=?, gender=?, phone=?, email=?, address=?, position=?, join_date=?, leave_date=?, salary=? WHERE id=?");
+    $stmt->bind_param('ssssssssssdi', $first_name, $last_name, $dob, $gender, $phone, $email, $address, $position, $join_date, $leave_date, $salary, $id);
 }
 $success = $stmt->execute();
 if ($success) {

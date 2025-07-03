@@ -74,8 +74,7 @@ $(document).ready(function() {
             let pic = t.profile_picture ? `<img src='../uploads/teachers/${t.profile_picture}' alt='Profile' width='40' height='40' style='object-fit:cover;border-radius:50%;'>` : '';
             rows += `<tr data-teacher-id='${t.id}'>
                 <td>${t.sl_no}</td>
-                <td>${t.first_name}</td>
-                <td>${t.last_name}</td>
+                <td>${t.first_name} ${t.last_name}</td>
                 <td>${t.phone || ''}</td>
                 <td>${t.position || ''}</td>
                 <td>${pic}</td>
@@ -214,7 +213,6 @@ $(document).ready(function() {
                     $('#last_name').val(teacher.last_name);
                     $('#gender').val(teacher.gender);
                     $('#address').val(teacher.address);
-                    $('#department_id').val(teacher.department_id);
                     $('#position').val(teacher.position);
                     $('#join_date').val(teacher.join_date);
                     $('#leave_date').val(teacher.leave_date);
@@ -371,7 +369,6 @@ $(document).ready(function() {
                 if (!t) return;
                 var details = `<tr class='teacher-details-row'><td colspan='10'><div class='details-content' style='display:none;'><ul class='mb-0'>
                     <li><strong>Email:</strong> ${t.email || 'N/A'}</li>
-                    <li><strong>Department:</strong> ${t.department_name || 'N/A'}</li>
                     <li><strong>Date of Birth:</strong> ${(!t.dob || t.dob === '0000-00-00') ? 'N/A' : t.dob}</li>
                     <li><strong>Gender:</strong> ${t.gender || 'N/A'}</li>
                     <li><strong>Address:</strong> ${t.address || 'N/A'}</li>

@@ -23,8 +23,42 @@ if (isset($_FILES['profile_picture']) && $_FILES['profile_picture']['error'] ===
 }
 
 if (!$first_name) {
-    echo json_encode(['success' => false, 'message' => 'First name required.']);
+    echo json_encode(['success' => false, 'message' => 'First name is required.']);
     exit;
+}
+
+// Validate email format if provided
+if ($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    echo json_encode(['success' => false, 'message' => 'Please enter a valid email address.']);
+    exit;
+}
+
+// Check if email already exists
+if ($email) {
+    $stmt = $conn->prepare("SELECT id FROM parents WHERE email = ? AND is_deleted = 0");
+    $stmt->bind_param('s', $email);
+    $stmt->execute();
+    if ($stmt->get_result()->num_rows > 0) {
+        echo json_encode(['success' => false, 'message' => 'Email address already exists.']);
+        $stmt->close();
+        $conn->close();
+        exit;
+    }
+    $stmt->close();
+}
+
+// Check if phone already exists
+if ($phone) {
+    $stmt = $conn->prepare("SELECT id FROM parents WHERE phone = ? AND is_deleted = 0");
+    $stmt->bind_param('s', $phone);
+    $stmt->execute();
+    if ($stmt->get_result()->num_rows > 0) {
+        echo json_encode(['success' => false, 'message' => 'Phone number already exists.']);
+        $stmt->close();
+        $conn->close();
+        exit;
+    }
+    $stmt->close();
 }
 
 // 1. Create user
@@ -46,7 +80,7 @@ $stmt = $conn->prepare("INSERT INTO parents (user_id, first_name, last_name, gen
 $stmt->bind_param('isssssss', $user_id, $first_name, $last_name, $gender, $phone, $email, $address, $profile_picture);
 $success = $stmt->execute();
 if ($success) {
-    echo json_encode(['success' => true, 'message' => 'Parent added successfully.']);
+    echo json_encode(['success' => true, 'message' => 'Parent added successfully. Default password is "parent123".']);
 } else {
     echo json_encode(['success' => false, 'message' => 'Failed to add parent.']);
 }

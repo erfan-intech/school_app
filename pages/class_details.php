@@ -12,8 +12,7 @@ if (!$class_id) {
     <div>
       <a href="classes.php" class="btn btn-secondary me-2">&larr; Back to Classes</a>
       <h2 class="mb-0 d-inline-block" id="classNameHeader">Class Name: <span id="className">Class 8</span></h2>
-      <button class="btn btn-sm btn-outline-primary ms-2" id="editClassBtn">Add Dept</button>
-      <button class="btn btn-sm btn-outline-success ms-2" id="editSectionsBtn">Sections</button>
+      <button class="btn btn-sm btn-outline-warning ms-2" id="editClassStructureBtn">Edit Class Structure</button>
     </div>
     <a href="class_details.php?class_id=<?php echo intval($class_id) - 1; ?>" class="btn btn-primary" id="nextClassBtn">&larr; Prev Class</a>
     <a href="class_details.php?class_id=<?php echo intval($class_id) + 1; ?>" class="btn btn-primary" id="nextClassBtn">Next Class &rarr;</a>
@@ -25,7 +24,7 @@ if (!$class_id) {
         <ul id="departmentsList" class="list-group mb-2"></ul>
       </div>
       <div id="subjectsSection">
-        <h4 class="d-flex align-items-center">Subjects <button class="btn btn-sm btn-outline-primary ms-2" id="editSubjectsBtn">Edit</button></h4>
+        <h4>Subjects</h4>
         <table class="table table-bordered" id="subjectsList">
           <thead>
             <tr>
@@ -39,17 +38,15 @@ if (!$class_id) {
     </div>
     <div class="col-lg-4 col-md-12">
       <h4>Sections</h4>
-      <div class="table-responsive">
-        <table class="table table-bordered" id="sectionsList">
-          <thead>
-            <tr>
-              <th>Section Name</th>
-              <th id="sectionsDeptHeader" style="display:none;">Department</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
+      <table class="table table-bordered" id="sectionsList">
+        <thead>
+          <tr>
+            <th>Section Name</th>
+            <th id="sectionsDeptHeader" style="display:none;">Department</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
     </div>
   </div>
   <div class="row mb-4">
@@ -105,66 +102,7 @@ if (!$class_id) {
     </div>
   </div>
 </div>
-<!-- Edit Class Modal (for departments) -->
-<div class="modal fade" id="editClassModal" tabindex="-1" aria-labelledby="editClassModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <form id="editClassForm">
-        <div class="modal-header">
-          <h5 class="modal-title" id="editClassModalLabel">Edit Departments for Class</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <div id="editClassDepartmentsCheckboxes"></div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-primary">Save</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-<!-- Edit Subjects Modal -->
-<div class="modal fade" id="editSubjectsModal" tabindex="-1" aria-labelledby="editSubjectsModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <form id="editSubjectsForm">
-        <div class="modal-header">
-          <h5 class="modal-title" id="editSubjectsModalLabel">Edit Subjects</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <div id="subjectsByDeptContainer"></div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-primary">Save</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-<!-- Assign Subjects Modal (per department) -->
-<div class="modal fade" id="assignSubjectsModal" tabindex="-1" aria-labelledby="assignSubjectsModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <form id="assignSubjectsForm">
-        <div class="modal-header">
-          <h5 class="modal-title" id="assignSubjectsModalLabel">Assign Subjects to Departments</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body" id="assignSubjectsModalBody">
-          <!-- Dynamic content: checkboxes for each department -->
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-primary">Save</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
+
 <!-- Assign Teachers Modal -->
 <div class="modal fade" id="assignTeachersModal" tabindex="-1" aria-labelledby="assignTeachersModalLabel" aria-hidden="true">
   <div class="modal-dialog">
@@ -206,21 +144,67 @@ if (!$class_id) {
     </div>
   </div>
 </div>
-<!-- Edit Sections Modal -->
-<div class="modal fade" id="editSectionsModal" tabindex="-1" aria-labelledby="editSectionsModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
+
+
+<!-- Edit Class Structure Modal -->
+<div class="modal fade" id="editClassStructureModal" tabindex="-1" aria-labelledby="editClassStructureModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
     <div class="modal-content">
-      <form id="editSectionsForm">
+      <form id="editClassStructureForm">
         <div class="modal-header">
-          <h5 class="modal-title" id="editSectionsModalLabel">Edit Sections for Class</h5>
+          <h5 class="modal-title" id="editClassStructureModalLabel">Edit Class Structure</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <div id="editClassSectionsCheckboxes"></div>
+          <!-- Main Options -->
+          <div class="mb-4">
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="checkbox" id="hasDepartmentsCheck">
+              <label class="form-check-label" for="hasDepartmentsCheck">
+                <strong>This class have Departments</strong>
+              </label>
+            </div>
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="checkbox" id="hasSectionsCheck">
+              <label class="form-check-label" for="hasSectionsCheck">
+                <strong>This class have Sections</strong>
+              </label>
+            </div>
+          </div>
+
+          <!-- Select Departments Section -->
+          <div class="mb-4" id="selectDepartmentsSection" style="display: none;">
+            <h6><strong>Select Departments: (only departments to check)</strong></h6>
+            <div id="departmentsCheckboxes"></div>
+          </div>
+
+          <!-- Global Sections Section -->
+          <div class="mb-4" id="globalSectionsSection" style="display: none;">
+            <h6><strong>Select Section: (global)</strong></h6>
+            <div id="globalSectionsCheckboxes"></div>
+          </div>
+
+          <!-- Global Subjects Section -->
+          <div class="mb-4" id="globalSubjectsSection" style="display: none;">
+            <h6><strong>Select Subjects: (global)</strong></h6>
+            <div id="globalSubjectsCheckboxes"></div>
+          </div>
+
+          <!-- Department Sections Section -->
+          <div class="mb-4" id="departmentSectionsSection" style="display: none;">
+            <h6><strong>Assign Section on Each Department:</strong></h6>
+            <div id="departmentSectionsCheckboxes"></div>
+          </div>
+
+          <!-- Department Subjects Section -->
+          <div class="mb-4" id="departmentSubjectsSection" style="display: none;">
+            <h6><strong>Assign Subjects for Departments:</strong></h6>
+            <div id="departmentSubjectsCheckboxes"></div>
+          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-primary">Save</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
         </div>
       </form>
     </div>

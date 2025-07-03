@@ -1,28 +1,130 @@
 <?php include '../includes/header.php'; ?>
+<style>
+    .sticky-header {
+        background: white;
+        border-bottom: 1px solid #dee2e6;
+        padding-bottom: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .table-responsive {
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+    }
+    
+    .table th {
+        background-color: #f8f9fa;
+        border-bottom: 2px solid #dee2e6;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    
+    .table td {
+        vertical-align: middle;
+    }
+    
+    .pagination-section {
+        background: white;
+        border-top: 1px solid #dee2e6;
+        padding-top: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .sortable {
+        cursor: pointer;
+        user-select: none;
+        position: relative;
+    }
+    
+    .sortable:hover {
+        background-color: #e9ecef !important;
+    }
+    
+    .sortable i {
+        margin-left: 5px;
+        opacity: 0.5;
+        transition: opacity 0.2s;
+    }
+    
+    .sortable.asc i,
+    .sortable.desc i {
+        opacity: 1;
+    }
+    
+    .sortable.asc i::before {
+        content: "\f0de";
+    }
+    
+    .sortable.desc i::before {
+        content: "\f0dd";
+    }
+    
+    .table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+    
+    .pagination-info {
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+</style>
 <div class="container mt-4">
-  <h2>Parent Management</h2>
-  <div class="d-flex align-items-center mb-3">
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#parentModal" id="addParentBtn">Add Parent</button>
-    <input type="text" id="parentSearch" class="form-control w-auto ms-auto" placeholder="Search parents...">
-  </div>
-  <div class="table-responsive">
-    <table class="table table-bordered" id="parentsTable">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Profile Picture</th>
-          <th>First Name</th>
-          <th>Last Name</th>
-          <th>Gender</th>
-          <th>Phone</th>
-          <th>Email</th>
-          <th>Address</th>
-          <th class="text-end">Actions</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
+    <!-- Sticky Header Section -->
+    <div class="sticky-header bg-white border-bottom pb-3 mb-3" style="position: sticky; top: 56px; z-index: 1000;">
+        <h2>Parent Management</h2>
+        <div class="d-flex align-items-center">
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#parentModal" id="addParentBtn">Add Parent</button>
+            <input type="text" id="parentSearch" class="form-control w-auto ms-auto" placeholder="Search parents...">
+        </div>
+    </div>
+    
+    <div class="table-responsive" style="height: calc(100vh - 250px); overflow-y: auto;">
+        <table class="table table-bordered sortable-table" id="parentsTable">
+            <thead>
+                <tr>
+                    <th class="sortable" data-sort="sl_no" data-type="sl_no">SL No <i class="fas fa-sort"></i></th>
+                    <th class="sortable" data-sort="name" data-type="name">Name <i class="fas fa-sort"></i></th>
+                    <th class="sortable" data-sort="phone" data-type="phone">Phone <i class="fas fa-sort"></i></th>
+                    <th class="sortable" data-sort="email" data-type="email">Email <i class="fas fa-sort"></i></th>
+                    <th data-type="image">Profile Picture</th>
+                    <th class="sortable" data-sort="address">Address <i class="fas fa-sort"></i></th>
+                    <th class="sortable" data-sort="gender">Gender <i class="fas fa-sort"></i></th>
+                    <th class="text-end" data-type="action">Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <!-- Pagination Section -->
+    <div class="pagination-section bg-white border-top pt-3" style="position: sticky; bottom: 0; z-index: 1000;">
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="pagination-info">
+                Showing <span id="startRecord">1</span> to <span id="endRecord">10</span> of <span id="totalRecords">0</span> parents
+            </div>
+            <div class="d-flex align-items-center">
+                <button class="btn btn-outline-primary btn-sm me-3" id="viewAllBtn">View All</button>
+                <nav aria-label="Parent pagination">
+                    <ul class="pagination pagination-sm mb-0" id="pagination">
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" id="prevPage">Previous</a>
+                        </li>
+                        <li class="page-item active">
+                            <a class="page-link" href="#" data-page="1">1</a>
+                        </li>
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" id="nextPage">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
 </div>
 <!-- Parent Modal -->
 <div class="modal fade" id="parentModal" tabindex="-1" aria-labelledby="parentModalLabel" aria-hidden="true">
@@ -80,5 +182,6 @@
     </div>
   </div>
 </div>
+<script src="../assets/js/universal-table-sorter.js"></script>
 <script src="../assets/js/parents.js"></script>
 <?php include '../includes/footer.php'; ?>

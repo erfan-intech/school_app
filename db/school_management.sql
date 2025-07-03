@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 02, 2025 at 10:38 PM
+-- Generation Time: Jul 03, 2025 at 11:15 PM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- PHP Version: 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -70,7 +70,8 @@ INSERT INTO `attendance` (`id`, `user_id`, `user_type`, `class_id`, `date`, `tim
 (76, 82, 'teacher', NULL, '2025-07-02', '12:01:00', '00:00:00', 'present', NULL),
 (77, 83, 'teacher', NULL, '2025-07-02', '12:01:00', '00:00:00', 'present', NULL),
 (78, 84, 'teacher', NULL, '2025-07-02', '12:01:00', '00:00:00', 'present', NULL),
-(79, 85, 'teacher', NULL, '2025-07-02', '12:01:00', '00:00:00', 'present', NULL);
+(79, 85, 'teacher', NULL, '2025-07-02', '12:01:00', '00:00:00', 'present', NULL),
+(80, 7, 'teacher', NULL, '2025-07-03', '10:00:00', '00:00:00', 'present', NULL);
 
 -- --------------------------------------------------------
 
@@ -97,53 +98,22 @@ INSERT INTO `classes` (`id`, `name`, `is_deleted`) VALUES
 (8, 'Class 8', 0),
 (9, 'Class 9', 0),
 (10, 'Class 10-New', 0),
-(11, 'Class 10-Old', 0);
+(11, 'Class 10-Old', 0),
+(13, 'newClass', 0);
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `class_departments`
+-- Table structure for table `class_dept_sec`
 --
 
-CREATE TABLE `class_departments` (
+CREATE TABLE `class_dept_sec` (
   `id` int(11) NOT NULL,
-  `class_id` int(11) NOT NULL,
-  `department_id` int(11) NOT NULL,
-  `section_id` int(11) NOT NULL DEFAULT 0
+  `class_id` int(11) DEFAULT NULL,
+  `department_id` int(11) DEFAULT NULL,
+  `section_id` int(11) DEFAULT NULL,
+  `is_deleted` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `class_departments`
---
-
-INSERT INTO `class_departments` (`id`, `class_id`, `department_id`, `section_id`) VALUES
-(36, 3, 0, 3),
-(57, 4, 0, 1),
-(58, 4, 0, 2),
-(56, 4, 0, 3),
-(24, 9, 1, 0),
-(72, 9, 1, 1),
-(67, 9, 1, 2),
-(66, 9, 1, 3),
-(22, 9, 2, 0),
-(68, 9, 2, 2),
-(69, 9, 2, 3),
-(23, 9, 3, 0),
-(71, 9, 3, 1),
-(70, 9, 3, 2),
-(75, 10, 1, 0),
-(79, 10, 1, 1),
-(77, 10, 1, 2),
-(76, 10, 1, 3),
-(73, 10, 2, 0),
-(80, 10, 2, 2),
-(78, 10, 2, 3),
-(74, 10, 3, 0),
-(81, 10, 3, 1),
-(82, 10, 3, 2),
-(30, 11, 1, 0),
-(28, 11, 2, 0),
-(29, 11, 3, 0);
 
 -- --------------------------------------------------------
 
@@ -154,67 +124,9 @@ INSERT INTO `class_departments` (`id`, `class_id`, `department_id`, `section_id`
 CREATE TABLE `class_subjects` (
   `id` int(11) NOT NULL,
   `class_id` int(11) NOT NULL,
-  `subject_id` int(11) NOT NULL,
-  `department_id` int(11) NOT NULL DEFAULT 0
+  `subject_id` int(11) DEFAULT NULL,
+  `department_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `class_subjects`
---
-
-INSERT INTO `class_subjects` (`id`, `class_id`, `subject_id`, `department_id`) VALUES
-(168, 3, 1, 0),
-(160, 3, 2, 0),
-(161, 3, 3, 0),
-(162, 3, 4, 0),
-(194, 4, 1, 0),
-(190, 4, 2, 0),
-(191, 4, 3, 0),
-(192, 4, 4, 0),
-(210, 4, 5, 0),
-(203, 4, 12, 0),
-(256, 5, 1, 0),
-(257, 5, 2, 0),
-(258, 5, 3, 0),
-(259, 5, 4, 0),
-(260, 5, 5, 0),
-(261, 5, 12, 0),
-(351, 8, 1, 0),
-(352, 8, 2, 0),
-(353, 8, 3, 0),
-(356, 8, 4, 0),
-(354, 8, 5, 0),
-(355, 8, 12, 0),
-(357, 9, 1, 1),
-(368, 9, 1, 2),
-(271, 9, 1, 3),
-(243, 9, 3, 1),
-(369, 9, 3, 2),
-(378, 9, 3, 3),
-(366, 9, 4, 1),
-(284, 9, 4, 2),
-(382, 9, 4, 3),
-(359, 9, 5, 1),
-(371, 9, 5, 2),
-(302, 9, 5, 3),
-(220, 9, 6, 1),
-(221, 9, 7, 1),
-(223, 9, 8, 1),
-(222, 9, 9, 1),
-(365, 9, 10, 1),
-(372, 9, 10, 2),
-(380, 9, 10, 3),
-(367, 9, 11, 1),
-(373, 9, 11, 2),
-(379, 9, 11, 3),
-(364, 9, 12, 1),
-(374, 9, 12, 2),
-(381, 9, 12, 3),
-(177, 9, 13, 2),
-(178, 9, 14, 2),
-(179, 9, 15, 3),
-(180, 9, 16, 3),
-(181, 9, 17, 3);
 
 -- --------------------------------------------------------
 
@@ -226,50 +138,9 @@ CREATE TABLE `class_teachers` (
   `id` int(11) NOT NULL,
   `class_id` int(11) NOT NULL,
   `department_id` int(11) DEFAULT NULL,
-  `teacher_id` int(11) NOT NULL,
+  `teacher_id` int(11) DEFAULT NULL,
   `subject_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `class_teachers`
---
-
-INSERT INTO `class_teachers` (`id`, `class_id`, `department_id`, `teacher_id`, `subject_id`) VALUES
-(194, 3, 0, 1, NULL),
-(195, 3, 0, 2, NULL),
-(193, 3, 0, 15, NULL),
-(196, 3, 0, 17, NULL),
-(199, 3, 0, 2, 1),
-(201, 3, 0, 17, 1),
-(198, 3, 0, 1, 2),
-(200, 3, 0, 15, 3),
-(202, 3, 0, 17, 4),
-(139, 8, 0, 1, NULL),
-(140, 8, 0, 2, NULL),
-(141, 8, 0, 14, NULL),
-(142, 8, 0, 15, NULL),
-(144, 8, 0, 16, NULL),
-(143, 8, 0, 17, NULL),
-(147, 8, 0, 2, 1),
-(145, 8, 0, 1, 2),
-(152, 8, 0, 2, 2),
-(189, 8, 0, 2, 3),
-(148, 8, 0, 14, 3),
-(153, 8, 0, 15, 3),
-(155, 8, 0, 17, 4),
-(150, 8, 0, 16, 5),
-(154, 8, 0, 17, 5),
-(149, 8, 0, 15, 12),
-(156, 9, 0, 1, NULL),
-(157, 9, 0, 2, NULL),
-(159, 9, 0, 14, NULL),
-(162, 9, 0, 15, NULL),
-(158, 9, 0, 16, NULL),
-(186, 9, 1, 2, 1),
-(168, 9, 1, 1, 10),
-(170, 9, 1, 1, 11),
-(187, 9, 2, 2, 1),
-(188, 9, 3, 2, 1);
 
 -- --------------------------------------------------------
 
@@ -288,10 +159,10 @@ CREATE TABLE `departments` (
 --
 
 INSERT INTO `departments` (`id`, `name`, `is_deleted`) VALUES
-(0, 'None', 0),
 (1, 'Science', 0),
 (2, 'Arts', 0),
-(3, 'Commerce', 0);
+(3, 'Commerce', 0),
+(6, 'newDept', 1);
 
 -- --------------------------------------------------------
 
@@ -379,10 +250,10 @@ CREATE TABLE `sections` (
 --
 
 INSERT INTO `sections` (`id`, `name`, `is_deleted`) VALUES
-(0, 'None', 0),
 (1, 'Red', 0),
 (2, 'Green', 0),
-(3, 'Blue', 0);
+(3, 'Blue', 0),
+(9, 'NewSection', 1);
 
 -- --------------------------------------------------------
 
@@ -434,7 +305,7 @@ CREATE TABLE `students` (
 --
 
 INSERT INTO `students` (`id`, `father_id`, `mother_id`, `local_guardian_id`, `user_id`, `first_name`, `last_name`, `roll_no`, `dob`, `gender`, `address`, `admission_date`, `current_class_id`, `current_section_id`, `current_department_id`, `profile_picture`, `note`, `is_deleted`) VALUES
-(46, 1, 3, 2, 64, 'Md. Robiul', 'Islam', 1, '2000-01-01', 'male', 'Address', '2025-01-01', 3, NULL, NULL, 'student_68626de041c9d3.45757257.jpeg', '', 0),
+(46, 1, 3, 2, 64, 'Md. Robiul', 'Islam', 1, '2000-01-01', 'male', 'Address', '2025-01-01', 3, 1, NULL, 'student_68626de041c9d3.45757257.jpeg', '', 0),
 (47, NULL, NULL, NULL, 65, 'student3-2', 'last Name', 2, '2000-01-01', 'female', 'Address', '2025-01-01', 3, NULL, NULL, 'student_68626e04ca5f36.08268898.jpg', '', 0),
 (48, NULL, NULL, NULL, 66, 'student3-4', '', 3, '2000-01-01', 'female', '', '2025-01-01', 3, NULL, NULL, 'student_68626fb1ab2bb4.26926742.jpeg', '', 0),
 (49, NULL, NULL, NULL, 67, 'student3-5', '', 4, '2000-01-01', 'male', '', '2024-01-01', 3, NULL, NULL, 'student_68626e7c4f1089.41379022.jpg', '', 0),
@@ -443,18 +314,6 @@ INSERT INTO `students` (`id`, `father_id`, `mother_id`, `local_guardian_id`, `us
 (52, 2, 3, 1, 74, 'student 6-1', '', 1, '2000-01-01', 'male', 'Address 6-1', '2025-01-01', 5, 3, 1, NULL, 'new note added', 0),
 (53, 2, 3, 1, 86, 'student9-2', 'lastName', 2, '2001-01-01', 'male', 'Chilahati', '2025-01-01', 9, NULL, NULL, NULL, '', 0),
 (54, NULL, NULL, NULL, 87, 'aaaaa', 'bbbbb', 10, '2006-01-01', 'male', '', '2025-01-10', 9, NULL, 1, NULL, '', 0);
-
--- --------------------------------------------------------
-
---
--- Table structure for table `student_classes`
---
-
-CREATE TABLE `student_classes` (
-  `id` int(11) NOT NULL,
-  `student_id` int(11) NOT NULL,
-  `class_id` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -507,7 +366,8 @@ INSERT INTO `subjects` (`id`, `name`, `is_deleted`) VALUES
 (14, 'History', 0),
 (15, 'Statistics', 0),
 (16, 'Accounting', 0),
-(17, 'Management', 0);
+(17, 'Management', 0),
+(18, 'NewSub2', 0);
 
 -- --------------------------------------------------------
 
@@ -525,7 +385,6 @@ CREATE TABLE `teachers` (
   `dob` date DEFAULT NULL,
   `gender` enum('male','female','other') DEFAULT NULL,
   `address` varchar(255) DEFAULT NULL,
-  `department_id` int(11) DEFAULT NULL,
   `position` varchar(100) DEFAULT NULL,
   `profile_picture` varchar(255) DEFAULT NULL,
   `join_date` date DEFAULT NULL,
@@ -538,30 +397,20 @@ CREATE TABLE `teachers` (
 -- Dumping data for table `teachers`
 --
 
-INSERT INTO `teachers` (`id`, `user_id`, `first_name`, `last_name`, `phone`, `email`, `dob`, `gender`, `address`, `department_id`, `position`, `profile_picture`, `join_date`, `leave_date`, `salary`, `is_deleted`) VALUES
-(1, 7, 'abdul', 'karim', '', '', '0000-00-00', 'male', 'Mirjagonj', NULL, 'Senior Teacher', 'teacher_6861813c200c51.84927770.jpeg', '2023-01-01', '0000-00-00', 10000.00, 0),
-(2, 8, 'Jannatul', 'Ferdaus', NULL, NULL, '1990-01-01', 'female', 'Gosaigonj, Chilahati', 2, 'Junior Teacher', 'teacher_686182c23e2b30.32612503.jpg', '2024-01-06', '0000-00-00', 12000.00, 0),
-(10, 60, 'Teacher60', 'Lastname', NULL, NULL, '1980-01-01', 'male', 'Teacher Address', NULL, 'Teacher', NULL, '2015-01-01', NULL, 25000.00, 0),
-(11, 61, 'Teacher61', 'Lastname', NULL, NULL, '1980-01-01', 'male', 'Teacher Address', NULL, 'Teacher', NULL, '2015-01-01', NULL, 25000.00, 1),
-(12, 62, 'Teacher62', 'Lastname', NULL, NULL, '1980-01-01', 'male', 'Teacher Address', NULL, 'Teacher', NULL, '2015-01-01', NULL, 25000.00, 0),
-(13, 81, 'Teacher', 'teacher', NULL, NULL, '1990-01-01', 'male', 'ahdbd', 1, 'Senior Teacher', 'teacher_6862776d1467f6.22628459.jpeg', '2022-01-01', '0000-00-00', 50000.00, 0),
-(14, 82, 'Ashraful', 'Islam', '0123456789', 'noemail@email.com', '1950-01-01', 'male', 'Rajshahi, Bangladesh', NULL, 'Principal', 'teacher_68627cbd9c3978.81834288.jfif', '1990-01-01', '0000-00-00', 20000.00, 0),
-(15, 83, 'Manik', 'Sir', '012345678', 'maniksir@email.com', '1951-01-01', 'male', 'Chilahati, Domar', NULL, 'Asst. Principal', 'teacher_68627df0b37cd7.36783859.jfif', '1991-01-01', '0000-00-00', 19000.00, 0),
-(16, 84, 'Nobiul', 'Sir', '01234567', 'nobiulsir@email.com', '1952-01-01', 'male', 'Vogdaburi, Chilahati', NULL, 'Senior Teacher', 'teacher_686280a8de2ca0.42226251.jfif', '1993-01-01', '0000-00-00', 18000.00, 0),
-(17, 85, 'Moulvi', 'Sir', '00998877', 'moulvisir@email.com', '1970-01-01', 'male', 'Ketibari, Chilahati', NULL, 'General Teacher', NULL, '1980-01-01', '0000-00-00', 10000.00, 0);
-
--- --------------------------------------------------------
-
---
--- Table structure for table `teacher_classes`
---
-
-CREATE TABLE `teacher_classes` (
-  `id` int(11) NOT NULL,
-  `teacher_id` int(11) NOT NULL,
-  `class_id` int(11) NOT NULL,
-  `subject_id` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+INSERT INTO `teachers` (`id`, `user_id`, `first_name`, `last_name`, `phone`, `email`, `dob`, `gender`, `address`, `position`, `profile_picture`, `join_date`, `leave_date`, `salary`, `is_deleted`) VALUES
+(1, 7, 'Abdul', 'Jabbar', '01234-112233', '', '0000-00-00', 'male', 'Address Line-1', 'Senior Teacher', 'teacher_6861813c200c51.84927770.jpeg', '2023-01-01', '0000-00-00', 20000.00, 0),
+(2, 8, 'Jannatul', 'Ferdaus', '01234-112233', '', '1990-01-01', 'female', 'Gosaigonj, Chilahati', 'Junior Teacher', 'teacher_686182c23e2b30.32612503.jpg', '2024-01-06', '0000-00-00', 12000.00, 0),
+(10, 60, 'Sirajul', 'Islam', '01234-223344', '', '1980-01-01', 'male', 'Chilahati', 'Assistant Teacher', NULL, '2015-01-01', '0000-00-00', 11000.00, 0),
+(11, 61, 'Teacher61', 'Lastname', NULL, NULL, '1980-01-01', 'male', 'Teacher Address', 'Teacher', NULL, '2015-01-01', NULL, 25000.00, 1),
+(12, 62, 'Fatima', 'Khatun', '01234-332211', '', '1980-01-01', 'female', 'Chilahati', 'Senior Teacher', NULL, '2015-01-01', '0000-00-00', 18000.00, 0),
+(13, 81, 'Golam', 'Rabbani', '01234-445566', '', '1990-01-01', 'male', 'Ambari, Domar, Nilphamari', 'Assistant Teacher', 'teacher_6862776d1467f6.22628459.jpeg', '2018-01-01', '0000-00-00', 15000.00, 0),
+(14, 82, 'Ashraful', 'Islam', '0123456789', 'noemail@email.com', '1950-01-01', 'male', 'Rajshahi, Bangladesh', 'Principal', 'teacher_68627cbd9c3978.81834288.jfif', '1990-01-01', '0000-00-00', 20000.00, 0),
+(15, 83, 'Manik', 'Sir', '012345678', 'maniksir@email.com', '1951-01-01', 'male', 'Chilahati, Domar', 'Asst. Principal', 'teacher_68627df0b37cd7.36783859.jfif', '1991-01-01', '0000-00-00', 19000.00, 0),
+(16, 84, 'Nobiul', 'Sir', '01234567', 'nobiulsir@email.com', '1952-01-01', 'male', 'Vogdaburi, Chilahati', 'Senior Teacher', 'teacher_686280a8de2ca0.42226251.jfif', '1993-01-01', '0000-00-00', 18000.00, 0),
+(17, 85, 'Moulvi', 'Sir', '00998877', 'moulvisir@email.com', '1970-01-01', 'male', 'Ketibari, Chilahati', 'General Teacher', NULL, '1980-01-01', '0000-00-00', 10000.00, 0),
+(18, 88, 'aaaa', 'aaaa', '', '', '0000-00-00', '', '', '', NULL, '0000-00-00', '0000-00-00', 0.00, 1),
+(19, 89, 'bbbb', 'bbbb', '', '', '0000-00-00', '', '', '', NULL, '0000-00-00', '0000-00-00', 0.00, 1),
+(20, 90, 'cccc', 'cccc', '', '', '0000-00-00', '', '', '', NULL, '0000-00-00', '0000-00-00', 0.00, 1);
 
 -- --------------------------------------------------------
 
@@ -672,7 +521,10 @@ INSERT INTO `users` (`id`, `username`, `password`, `role`, `fingerprint_id`, `pr
 (84, 'nobiu.sir938', '$2y$10$aZdf97zSWEbJzn34yvdbou/RO6y//hGrZTGfapAD0RsHbCsh.QVLy', 'teacher', NULL, NULL, '2025-06-30 12:18:49', 0),
 (85, 'moulvi.sir635', '$2y$10$O6M9qVsoEk4io4U.m0XdWe4EDVrLX5xLNuHRsogyY7tk2vOVGL5Ky', 'teacher', NULL, NULL, '2025-07-01 10:27:42', 0),
 (86, 'student9-2.lastname733', '$2y$10$ovK1sJ83zqwGCDTJUEVYBeFpnOWFkULXLkRakHZDLl1YWXTfQ.oBS', 'student', NULL, NULL, '2025-07-01 14:48:14', 0),
-(87, 'aaaaa.bbbbb942', '$2y$10$qyPZhVzWH/sznru8ilbM4.qTPt9Q9qrDxnu2Ofm6EDIAuRY3VUGky', 'student', NULL, NULL, '2025-07-02 09:38:40', 0);
+(87, 'aaaaa.bbbbb942', '$2y$10$qyPZhVzWH/sznru8ilbM4.qTPt9Q9qrDxnu2Ofm6EDIAuRY3VUGky', 'student', NULL, NULL, '2025-07-02 09:38:40', 0),
+(88, 'aaaa.aaaa784', '$2y$10$RQWuSZ86DkXMa8QFN195fu2fwCSHlVFgVFu6x9gAnLr/4hUaknY6q', 'teacher', NULL, NULL, '2025-07-02 21:51:19', 0),
+(89, 'bbbb.bbbb695', '$2y$10$77yY9dhjO2GKDOYrsGC3eeN3qNdVBzk1/t8L8utkmQviX7jBnyRfu', 'teacher', NULL, NULL, '2025-07-02 21:51:31', 0),
+(90, 'cccc.cccc953', '$2y$10$w4tQ7VqgFjpyrig57zj6xuvyuQ/Sr1N4f05h2DhX1roamBfw1YStG', 'teacher', NULL, NULL, '2025-07-02 21:51:37', 0);
 
 --
 -- Indexes for dumped tables
@@ -693,13 +545,13 @@ ALTER TABLE `classes`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexes for table `class_departments`
+-- Indexes for table `class_dept_sec`
 --
-ALTER TABLE `class_departments`
+ALTER TABLE `class_dept_sec`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `unique_class_dept_section` (`class_id`,`department_id`,`section_id`) USING BTREE,
   ADD KEY `department_id` (`department_id`),
-  ADD KEY `fk_class_departments_section_id` (`section_id`);
+  ADD KEY `fk_class_dept_sec_section_id` (`section_id`);
 
 --
 -- Indexes for table `class_subjects`
@@ -783,14 +635,6 @@ ALTER TABLE `students`
   ADD KEY `fk_local_guardian` (`local_guardian_id`);
 
 --
--- Indexes for table `student_classes`
---
-ALTER TABLE `student_classes`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `student_id` (`student_id`),
-  ADD KEY `class_id` (`class_id`);
-
---
 -- Indexes for table `student_history`
 --
 ALTER TABLE `student_history`
@@ -811,17 +655,7 @@ ALTER TABLE `subjects`
 --
 ALTER TABLE `teachers`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `user_id` (`user_id`),
-  ADD KEY `department_id` (`department_id`);
-
---
--- Indexes for table `teacher_classes`
---
-ALTER TABLE `teacher_classes`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `teacher_id` (`teacher_id`),
-  ADD KEY `class_id` (`class_id`),
-  ADD KEY `subject_id` (`subject_id`);
+  ADD KEY `user_id` (`user_id`);
 
 --
 -- Indexes for table `timetable`
@@ -848,37 +682,37 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `attendance`
 --
 ALTER TABLE `attendance`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=80;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=81;
 
 --
 -- AUTO_INCREMENT for table `classes`
 --
 ALTER TABLE `classes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
--- AUTO_INCREMENT for table `class_departments`
+-- AUTO_INCREMENT for table `class_dept_sec`
 --
-ALTER TABLE `class_departments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=83;
+ALTER TABLE `class_dept_sec`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=92;
 
 --
 -- AUTO_INCREMENT for table `class_subjects`
 --
 ALTER TABLE `class_subjects`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=453;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=461;
 
 --
 -- AUTO_INCREMENT for table `class_teachers`
 --
 ALTER TABLE `class_teachers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=203;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=210;
 
 --
 -- AUTO_INCREMENT for table `departments`
 --
 ALTER TABLE `departments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `exams`
@@ -902,7 +736,7 @@ ALTER TABLE `parents`
 -- AUTO_INCREMENT for table `sections`
 --
 ALTER TABLE `sections`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `staff`
@@ -917,12 +751,6 @@ ALTER TABLE `students`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
 
 --
--- AUTO_INCREMENT for table `student_classes`
---
-ALTER TABLE `student_classes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT for table `student_history`
 --
 ALTER TABLE `student_history`
@@ -932,19 +760,13 @@ ALTER TABLE `student_history`
 -- AUTO_INCREMENT for table `subjects`
 --
 ALTER TABLE `subjects`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `teachers`
 --
 ALTER TABLE `teachers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
-
---
--- AUTO_INCREMENT for table `teacher_classes`
---
-ALTER TABLE `teacher_classes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `timetable`
@@ -956,7 +778,7 @@ ALTER TABLE `timetable`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=88;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=91;
 
 --
 -- Constraints for dumped tables
@@ -970,53 +792,53 @@ ALTER TABLE `attendance`
   ADD CONSTRAINT `attendance_ibfk_2` FOREIGN KEY (`class_id`) REFERENCES `classes` (`id`);
 
 --
--- Constraints for table `class_departments`
+-- Constraints for table `class_dept_sec`
 --
-ALTER TABLE `class_departments`
-  ADD CONSTRAINT `class_departments_ibfk_1` FOREIGN KEY (`class_id`) REFERENCES `classes` (`id`),
-  ADD CONSTRAINT `class_departments_ibfk_2` FOREIGN KEY (`department_id`) REFERENCES `departments` (`id`),
-  ADD CONSTRAINT `fk_class_departments_section_id` FOREIGN KEY (`section_id`) REFERENCES `sections` (`id`) ON DELETE CASCADE;
+ALTER TABLE `class_dept_sec`
+  ADD CONSTRAINT `class_dept_sec_ibfk_1` FOREIGN KEY (`class_id`) REFERENCES `classes` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `class_dept_sec_ibfk_2` FOREIGN KEY (`department_id`) REFERENCES `departments` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `class_dept_sec_ibfk_3` FOREIGN KEY (`section_id`) REFERENCES `sections` (`id`) ON UPDATE CASCADE;
 
 --
 -- Constraints for table `class_subjects`
 --
 ALTER TABLE `class_subjects`
-  ADD CONSTRAINT `class_subjects_ibfk_1` FOREIGN KEY (`class_id`) REFERENCES `classes` (`id`),
-  ADD CONSTRAINT `class_subjects_ibfk_2` FOREIGN KEY (`subject_id`) REFERENCES `subjects` (`id`),
-  ADD CONSTRAINT `class_subjects_ibfk_3` FOREIGN KEY (`department_id`) REFERENCES `departments` (`id`);
+  ADD CONSTRAINT `class_subjects_ibfk_1` FOREIGN KEY (`class_id`) REFERENCES `classes` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `class_subjects_ibfk_2` FOREIGN KEY (`subject_id`) REFERENCES `subjects` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `class_subjects_ibfk_3` FOREIGN KEY (`department_id`) REFERENCES `departments` (`id`) ON UPDATE CASCADE;
 
 --
 -- Constraints for table `class_teachers`
 --
 ALTER TABLE `class_teachers`
-  ADD CONSTRAINT `class_teachers_ibfk_1` FOREIGN KEY (`class_id`) REFERENCES `classes` (`id`),
-  ADD CONSTRAINT `class_teachers_ibfk_2` FOREIGN KEY (`teacher_id`) REFERENCES `teachers` (`id`),
-  ADD CONSTRAINT `class_teachers_ibfk_3` FOREIGN KEY (`subject_id`) REFERENCES `subjects` (`id`),
-  ADD CONSTRAINT `fk_class_teachers_department` FOREIGN KEY (`department_id`) REFERENCES `departments` (`id`) ON DELETE SET NULL;
+  ADD CONSTRAINT `ibfk_class_teachers_classes_id` FOREIGN KEY (`class_id`) REFERENCES `classes` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `ibfk_class_teachers_department_id` FOREIGN KEY (`department_id`) REFERENCES `departments` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `ibfk_class_teachers_subjects_id` FOREIGN KEY (`subject_id`) REFERENCES `subjects` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `ibfk_class_teachers_teachers_id` FOREIGN KEY (`teacher_id`) REFERENCES `teachers` (`id`) ON UPDATE CASCADE;
 
 --
 -- Constraints for table `exams`
 --
 ALTER TABLE `exams`
-  ADD CONSTRAINT `exams_ibfk_1` FOREIGN KEY (`class_id`) REFERENCES `classes` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `exams_ibfk_2` FOREIGN KEY (`department_id`) REFERENCES `departments` (`id`) ON DELETE SET NULL,
-  ADD CONSTRAINT `exams_ibfk_3` FOREIGN KEY (`section_id`) REFERENCES `sections` (`id`) ON DELETE SET NULL,
-  ADD CONSTRAINT `exams_ibfk_4` FOREIGN KEY (`subject_id`) REFERENCES `subjects` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `exams_ibfk_5` FOREIGN KEY (`teacher_id`) REFERENCES `teachers` (`id`) ON DELETE SET NULL;
+  ADD CONSTRAINT `ibfk_exams_classes_id` FOREIGN KEY (`class_id`) REFERENCES `classes` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE,
+  ADD CONSTRAINT `ibfk_exams_dept_id` FOREIGN KEY (`department_id`) REFERENCES `departments` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE,
+  ADD CONSTRAINT `ibfk_exams_sect_id` FOREIGN KEY (`section_id`) REFERENCES `sections` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE,
+  ADD CONSTRAINT `ibfk_exams_subject_id` FOREIGN KEY (`subject_id`) REFERENCES `subjects` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE,
+  ADD CONSTRAINT `ibfk_exams_teacher_id` FOREIGN KEY (`teacher_id`) REFERENCES `teachers` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE;
 
 --
 -- Constraints for table `grades`
 --
 ALTER TABLE `grades`
-  ADD CONSTRAINT `grades_ibfk_1` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `grades_ibfk_2` FOREIGN KEY (`exam_id`) REFERENCES `exams` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `grades_ibfk_3` FOREIGN KEY (`subject_id`) REFERENCES `subjects` (`id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `grades_ibfk_1` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE,
+  ADD CONSTRAINT `grades_ibfk_2` FOREIGN KEY (`exam_id`) REFERENCES `exams` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE,
+  ADD CONSTRAINT `grades_ibfk_3` FOREIGN KEY (`subject_id`) REFERENCES `subjects` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE;
 
 --
 -- Constraints for table `parents`
 --
 ALTER TABLE `parents`
-  ADD CONSTRAINT `parents_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+  ADD CONSTRAINT `parents_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE;
 
 --
 -- Constraints for table `staff`
@@ -1028,44 +850,28 @@ ALTER TABLE `staff`
 -- Constraints for table `students`
 --
 ALTER TABLE `students`
-  ADD CONSTRAINT `fk_father` FOREIGN KEY (`father_id`) REFERENCES `parents` (`id`),
-  ADD CONSTRAINT `fk_local_guardian` FOREIGN KEY (`local_guardian_id`) REFERENCES `parents` (`id`),
-  ADD CONSTRAINT `fk_mother` FOREIGN KEY (`mother_id`) REFERENCES `parents` (`id`),
-  ADD CONSTRAINT `students_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
-  ADD CONSTRAINT `students_ibfk_3` FOREIGN KEY (`current_class_id`) REFERENCES `classes` (`id`),
-  ADD CONSTRAINT `students_ibfk_4` FOREIGN KEY (`current_section_id`) REFERENCES `sections` (`id`),
-  ADD CONSTRAINT `students_ibfk_5` FOREIGN KEY (`current_department_id`) REFERENCES `departments` (`id`);
-
---
--- Constraints for table `student_classes`
---
-ALTER TABLE `student_classes`
-  ADD CONSTRAINT `student_classes_ibfk_1` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`),
-  ADD CONSTRAINT `student_classes_ibfk_2` FOREIGN KEY (`class_id`) REFERENCES `classes` (`id`);
+  ADD CONSTRAINT `ibfk_students_classes` FOREIGN KEY (`current_class_id`) REFERENCES `classes` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `ibfk_students_dept` FOREIGN KEY (`current_department_id`) REFERENCES `departments` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `ibfk_students_father` FOREIGN KEY (`father_id`) REFERENCES `parents` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `ibfk_students_local` FOREIGN KEY (`local_guardian_id`) REFERENCES `parents` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `ibfk_students_mother` FOREIGN KEY (`mother_id`) REFERENCES `parents` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `ibfk_students_section` FOREIGN KEY (`current_section_id`) REFERENCES `sections` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `ibfk_students_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON UPDATE CASCADE;
 
 --
 -- Constraints for table `student_history`
 --
 ALTER TABLE `student_history`
-  ADD CONSTRAINT `student_history_ibfk_1` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`),
-  ADD CONSTRAINT `student_history_ibfk_2` FOREIGN KEY (`class_id`) REFERENCES `classes` (`id`),
-  ADD CONSTRAINT `student_history_ibfk_3` FOREIGN KEY (`section_id`) REFERENCES `sections` (`id`),
-  ADD CONSTRAINT `student_history_ibfk_4` FOREIGN KEY (`department_id`) REFERENCES `departments` (`id`);
+  ADD CONSTRAINT `student_history_ibfk_1` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `student_history_ibfk_2` FOREIGN KEY (`class_id`) REFERENCES `classes` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `student_history_ibfk_3` FOREIGN KEY (`section_id`) REFERENCES `sections` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `student_history_ibfk_4` FOREIGN KEY (`department_id`) REFERENCES `departments` (`id`) ON UPDATE CASCADE;
 
 --
 -- Constraints for table `teachers`
 --
 ALTER TABLE `teachers`
-  ADD CONSTRAINT `teachers_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
-  ADD CONSTRAINT `teachers_ibfk_2` FOREIGN KEY (`department_id`) REFERENCES `departments` (`id`);
-
---
--- Constraints for table `teacher_classes`
---
-ALTER TABLE `teacher_classes`
-  ADD CONSTRAINT `teacher_classes_ibfk_1` FOREIGN KEY (`teacher_id`) REFERENCES `teachers` (`id`),
-  ADD CONSTRAINT `teacher_classes_ibfk_2` FOREIGN KEY (`class_id`) REFERENCES `classes` (`id`),
-  ADD CONSTRAINT `teacher_classes_ibfk_3` FOREIGN KEY (`subject_id`) REFERENCES `subjects` (`id`);
+  ADD CONSTRAINT `teachers_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
 
 --
 -- Constraints for table `timetable`

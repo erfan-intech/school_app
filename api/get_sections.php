@@ -2,7 +2,7 @@
 header('Content-Type: application/json');
 include '../includes/db_connect.php';
 
-$sql = "SELECT id, name FROM sections";
+$sql = "SELECT id, name FROM sections WHERE is_deleted=0";
 $result = $conn->query($sql);
 $sections = [];
 if ($result && $result->num_rows > 0) {
