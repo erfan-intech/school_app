@@ -54,7 +54,7 @@ while ($row = $result->fetch_assoc()) {
 $stmt->close();
 // Get enrolled students
 $students = [];
-$sql = 'SELECT s.id, s.user_id, s.first_name, s.last_name, s.profile_picture FROM students s WHERE s.current_class_id=? AND s.is_deleted=0';
+$sql = 'SELECT s.id, s.user_id, s.first_name, s.last_name, s.profile_picture, s.current_department_id, s.current_section_id, d.name AS department_name, sec.name AS section_name FROM students s LEFT JOIN departments d ON s.current_department_id = d.id LEFT JOIN sections sec ON s.current_section_id = sec.id WHERE s.current_class_id=? AND s.is_deleted=0';
 $stmt = $conn->prepare($sql);
 $stmt->bind_param('i', $class_id);
 $stmt->execute();

@@ -141,58 +141,19 @@ $(document).ready(function() {
                 res.students.forEach(function(s) {
                     let pic = s.profile_picture ? `<img src='../uploads/students/${s.profile_picture}' alt='Profile' width='40' height='40' style='object-fit:cover;border-radius:50%;'>` : '';
                     let att = s.attendance ? `<span class="badge bg-success">${s.attendance}</span>` : '<span class="badge bg-secondary">N/A</span>';
+                    let dept = s.department_name ? `<span class="badge bg-info">${s.department_name}</span>` : '<span class="text-muted">-</span>';
+                    let sec = s.section_name ? `<span class="badge bg-warning">${s.section_name}</span>` : '<span class="text-muted">-</span>';
                     studentRows += `<tr>
                         <td>${s.id}</td>
                         <td>${s.first_name} ${s.last_name || ''}</td>
                         <td>${pic}</td>
+                        <td>${dept}</td>
+                        <td>${sec}</td>
                         <td>${att}</td>
                     </tr>`;
                 });
                 $('#classStudentsTable tbody').html(studentRows);
-                // Populate Assign Teacher dropdown (only teachers assigned to this class)
-                var teacherOptions = '<option value="">Select Teacher</option>';
-                var teacherIds = [];
-                res.teachers.forEach(function(t) {
-                    if (!teacherIds.includes(t.teacher_id)) {
-                        teacherOptions += `<option value="${t.teacher_id}">${t.first_name} ${t.last_name}</option>`;
-                        teacherIds.push(t.teacher_id);
-                    }
-                });
-                $('#addTeacherSelect').html(teacherOptions);
-                // Department dropdown logic
-                if (res.departments && res.departments.length > 0) {
-                    $('#departmentDropdownContainer').show();
-                    var deptOptions = '<option value="">Select Department</option>';
-                    res.departments.forEach(function(d) {
-                        deptOptions += `<option value="${d.id}">${d.name}</option>`;
-                    });
-                    $('#addTeacherDepartmentSelect').html(deptOptions);
-                } else {
-                    $('#departmentDropdownContainer').hide();
-                    $('#addTeacherDepartmentSelect').html('');
-                }
-                // Populate Subject dropdown (subjects assigned to this class, filter by department if present)
-                function updateSubjectDropdown() {
-                    var subjectOptions = '<option value="">Select Subject</option>';
-                    var subjectIds = [];
-                    var selectedDept = $('#addTeacherDepartmentSelect').val();
-                    res.subjects.forEach(function(s) {
-                        if (selectedDept) {
-                            if (s.department_id == selectedDept && !subjectIds.includes(s.subject_id)) {
-                                subjectOptions += `<option value="${s.subject_id}">${s.name}</option>`;
-                                subjectIds.push(s.subject_id);
-                            }
-                        } else if (!selectedDept && (!s.department_id || s.department_id == 0) && !subjectIds.includes(s.subject_id)) {
-                            subjectOptions += `<option value="${s.subject_id}">${s.name}</option>`;
-                            subjectIds.push(s.subject_id);
-                        }
-                    });
-                    $('#addTeacherSubjectSelect').html(subjectOptions);
-                }
-                updateSubjectDropdown();
-                $('#addTeacherDepartmentSelect').off('change').on('change', function() {
-                    updateSubjectDropdown();
-                });
+
                 window.lastClassDetails = res;
                 console.log('Sections data:', res.sections); // Debug
                 renderSectionsTable(res.sections, res.departments);
@@ -233,16 +194,7 @@ $(document).ready(function() {
             if (res.success) loadClassDetails();
         }, 'json');
     });
-    // Assign teacher
-    $('#addTeacherBtn').click(function() {
-        var teacherId = $('#addTeacherSelect').val();
-        var departmentId = $('#addTeacherDepartmentSelect').val() || 0;
-        var subjId = $('#addTeacherSubjectSelect').val() || null;
-        if (!teacherId) return;
-        $.post('../api/assign_teacher_to_class.php', {class_id: classId, teacher_id: teacherId, department_id: departmentId, subject_id: subjId, action: 'add'}, function(res) {
-            if (res.success) loadClassDetails();
-        }, 'json');
-    });
+
     // Remove teacher
     $(document).on('click', '.remove-teacher-btn', function() {
         var teacherId = $(this).data('teacher-id');
@@ -396,11 +348,19 @@ $(document).ready(function() {
             var subjects = res.subjects;
             var teachers = res.teachers;
             var teacher = teachers.find(t => t.teacher_id == teacherId);
+            
+            // Store original state for comparison
+            var originalState = {
+                departments: {},
+                subjects: {}
+            };
+            
             // Departments (if any)
             if (departments.length > 0) {
                 var deptHtml = '<label class="form-label">Departments</label><div class="list-group">';
                 departments.forEach(function(dept) {
                     var checked = teachers.some(t => t.teacher_id == teacherId && t.department_id == dept.id) ? 'checked' : '';
+                    originalState.departments[dept.id] = checked === 'checked';
                     deptHtml += `<div class='list-group-item'>
                         <div class='form-check'>
                             <input class='form-check-input edit-teacher-dept-checkbox' type='checkbox' value='${dept.id}' id='edit_teacher_dept_${dept.id}' name='departments[]' ${checked} data-dept-id='${dept.id}'>
@@ -414,6 +374,7 @@ $(document).ready(function() {
             } else {
                 $('#editTeacherDepartmentsContainer').hide();
             }
+            
             // Subjects rendering for departments
             window.renderSubjectsForDepartments = function() {
                 departments.forEach(function(dept) {
@@ -425,7 +386,20 @@ $(document).ready(function() {
                         if (deptSubjects.length > 0) {
                             subjHtml += '<ul class="list-group">';
                             deptSubjects.forEach(function(subj) {
-                                var checked = teachers.some(t => t.teacher_id == teacherId && t.subject_id == subj.subject_id && t.department_id == subj.department_id) ? 'checked' : '';
+                                // Check if this subject was originally assigned from database
+                                var originallyChecked = teachers.some(t => t.teacher_id == teacherId && t.subject_id == subj.subject_id && t.department_id == subj.department_id);
+                                
+                                // Check if this subject is currently checked in the UI
+                                var currentlyChecked = $(`#edit_teacher_subj_${subj.subject_id}_${deptId}`).is(':checked');
+                                
+                                // Use current state if available, otherwise use original state
+                                var checked = currentlyChecked || originallyChecked ? 'checked' : '';
+                                
+                                // Update original state only if not already set
+                                if (!originalState.subjects.hasOwnProperty(`${subj.subject_id}_${deptId}`)) {
+                                    originalState.subjects[`${subj.subject_id}_${deptId}`] = originallyChecked;
+                                }
+                                
                                 subjHtml += `<li class='list-group-item'>
                                     <div class='form-check'>
                                         <input class='form-check-input edit-teacher-subj-checkbox' type='checkbox' value='${subj.subject_id}' data-department-id='${deptId}' id='edit_teacher_subj_${subj.subject_id}_${deptId}' name='subjects[]' ${checked}>
@@ -441,13 +415,16 @@ $(document).ready(function() {
                     $(`#edit_teacher_subjects_list_${deptId}`).html(subjHtml).toggle(show);
                 });
             };
+            
             // Initial render
             if (departments.length > 0) renderSubjectsForDepartments();
+            
             // For classes without departments
             if (departments.length === 0) {
                 var subjHtml = '<label class="form-label">Subjects</label><ul class="list-group">';
                 subjects.forEach(function(subj) {
                     var checked = teachers.some(t => t.teacher_id == teacherId && t.subject_id == subj.subject_id) ? 'checked' : '';
+                    originalState.subjects[subj.subject_id] = checked === 'checked';
                     subjHtml += `<li class='list-group-item'>
                         <div class='form-check'>
                             <input class='form-check-input edit-teacher-subj-checkbox' type='checkbox' value='${subj.subject_id}' id='edit_teacher_subj_${subj.subject_id}' name='subjects[]' ${checked}>
@@ -460,75 +437,144 @@ $(document).ready(function() {
             } else {
                 $('#editTeacherSubjectsContainer').html('');
             }
-            // Store teacherId for submit
+            
+            // Store teacherId and original state for submit
             $('#editTeacherSubjectsForm').data('teacher-id', teacherId);
+            $('#editTeacherSubjectsForm').data('original-state', originalState);
             $('#editTeacherSubjectsModal').modal('show');
         });
     });
-    // Handle individual subject checkbox changes
+    // Handle individual subject checkbox changes (no immediate API call)
     $(document).off('change', '.edit-teacher-subj-checkbox').on('change', '.edit-teacher-subj-checkbox', function() {
-        var classId = $('#classDetailsApp').data('class-id');
-        var teacherId = $('#editTeacherSubjectsForm').data('teacher-id');
-        var subjectId = $(this).val();
-        var departmentId = $(this).data('department-id') || null;
-        var action = $(this).is(':checked') ? 'add' : 'remove';
-        
-        $.post('../api/edit_teacher_subjects.php', {
-            class_id: classId,
-            teacher_id: teacherId,
-            subject_id: subjectId,
-            department_id: departmentId,
-            action: action
-        }, function(res) {
-            if (res.success) {
-                // Optionally refresh the class details to show updated state
-                // loadClassDetails();
-            } else {
-                alert(res.message || 'Failed to update teacher assignment.');
-                // Revert the checkbox state if the operation failed
-                $(this).prop('checked', !$(this).is(':checked'));
-            }
-        }, 'json');
+        // No immediate API call - changes will be saved when form is submitted
+        console.log('Subject checkbox changed:', $(this).val(), $(this).is(':checked'));
     });
 
-    // Handle individual department checkbox changes
+    // Handle individual department checkbox changes (no immediate API call)
     $(document).off('change', '.edit-teacher-dept-checkbox').on('change', '.edit-teacher-dept-checkbox', function() {
-        var classId = $('#classDetailsApp').data('class-id');
-        var teacherId = $('#editTeacherSubjectsForm').data('teacher-id');
         var departmentId = $(this).val();
-        var action = $(this).is(':checked') ? 'add' : 'remove';
-        var $this = $(this);
+        var isChecked = $(this).is(':checked');
         
-        console.log('Department checkbox changed:', departmentId, action); // Debug log
+        console.log('Department checkbox changed:', departmentId, isChecked); // Debug log
         
-        $.post('../api/edit_teacher_subjects.php', {
-            class_id: classId,
-            teacher_id: teacherId,
-            department_id: departmentId,
-            action: action
-        }, function(res) {
-            if (res.success) {
-                // If removing department, also uncheck all subject checkboxes in that department
-                if (action === 'remove') {
-                    $(`.edit-teacher-subj-checkbox[data-department-id="${departmentId}"]`).prop('checked', false);
-                }
-                // Refresh the subjects list for this department
-                if (window.renderSubjectsForDepartments) {
-                    window.renderSubjectsForDepartments();
-                }
-            } else {
-                alert(res.message || 'Failed to update teacher assignment.');
-                // Revert the checkbox state if the operation failed
-                $this.prop('checked', !$this.is(':checked'));
-            }
-        }, 'json');
+        // If removing department, also uncheck all subject checkboxes in that department
+        if (!isChecked) {
+            $(`.edit-teacher-subj-checkbox[data-department-id="${departmentId}"]`).prop('checked', false);
+        }
+        
+        // Refresh the subjects list for this department
+        if (window.renderSubjectsForDepartments) {
+            window.renderSubjectsForDepartments();
+        }
     });
 
-    // Submit edit teacher subjects form (now just closes the modal)
+    // Submit edit teacher subjects form - process all changes at once
     $('#editTeacherSubjectsForm').off('submit').on('submit', function(e) {
         e.preventDefault();
+        
+        var classId = $('#classDetailsApp').data('class-id');
+        var teacherId = $(this).data('teacher-id');
+        var originalState = $(this).data('original-state');
+        var changes = [];
+        
+        // Collect department changes
+        $('.edit-teacher-dept-checkbox').each(function() {
+            var deptId = $(this).val();
+            var currentState = $(this).is(':checked');
+            var originalDeptState = originalState.departments[deptId] || false;
+            
+            if (currentState !== originalDeptState) {
+                changes.push({
+                    type: 'department',
+                    department_id: deptId,
+                    action: currentState ? 'add' : 'remove'
+                });
+            }
+        });
+        
+        // Collect subject changes
+        $('.edit-teacher-subj-checkbox').each(function() {
+            var subjectId = $(this).val();
+            var departmentId = $(this).data('department-id') || null;
+            var currentState = $(this).is(':checked');
+            var key = departmentId ? `${subjectId}_${departmentId}` : subjectId;
+            var originalSubjState = originalState.subjects[key] || false;
+            
+            if (currentState !== originalSubjState) {
+                changes.push({
+                    type: 'subject',
+                    subject_id: subjectId,
+                    department_id: departmentId,
+                    action: currentState ? 'add' : 'remove'
+                });
+            }
+        });
+        
+        // If no changes, just close the modal
+        if (changes.length === 0) {
+            $('#editTeacherSubjectsModal').modal('hide');
+            return;
+        }
+        
+        // Process all changes
+        var processedChanges = 0;
+        var totalChanges = changes.length;
+        var hasError = false;
+        
+        changes.forEach(function(change) {
+            var postData = {
+                class_id: classId,
+                teacher_id: teacherId,
+                action: change.action
+            };
+            
+            if (change.type === 'department') {
+                postData.department_id = change.department_id;
+            } else if (change.type === 'subject') {
+                postData.subject_id = change.subject_id;
+                if (change.department_id) {
+                    postData.department_id = change.department_id;
+                }
+            }
+            
+            $.post('../api/edit_teacher_subjects.php', postData, function(res) {
+                processedChanges++;
+                
+                if (!res.success) {
+                    hasError = true;
+                    alert('Failed to update: ' + (res.message || 'Unknown error'));
+                }
+                
+                // When all changes are processed
+                if (processedChanges === totalChanges) {
+                    $('#editTeacherSubjectsModal').modal('hide');
+                    if (!hasError) {
+                        loadClassDetails(); // Refresh to show changes
+                    }
+                }
+            }, 'json').fail(function() {
+                processedChanges++;
+                hasError = true;
+                alert('Network error occurred while updating teacher assignments.');
+                
+                if (processedChanges === totalChanges) {
+                    $('#editTeacherSubjectsModal').modal('hide');
+                }
+            });
+        });
+    });
+
+    // Handle Cancel button in edit teacher subjects modal
+    $('#editTeacherSubjectsModal .btn-secondary, #editTeacherSubjectsModal .btn-close').on('click', function() {
+        // Just close the modal without making any API calls
         $('#editTeacherSubjectsModal').modal('hide');
-        loadClassDetails(); // Refresh to show any changes
+    });
+    
+    // Clean up data when modal is hidden
+    $('#editTeacherSubjectsModal').on('hidden.bs.modal', function() {
+        // Clear stored data
+        $('#editTeacherSubjectsForm').removeData('teacher-id');
+        $('#editTeacherSubjectsForm').removeData('original-state');
     });
 
     // TODO: Populate department, subject, and teacher selects with available options (AJAX or server-side)

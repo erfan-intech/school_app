@@ -44,12 +44,12 @@ while ($row = $result->fetch_assoc()) {
 $stmt->close();
 // Fetch grades and mark sheets (using new grades and exams tables)
 $grades = [];
-$sql = "SELECT e.term_name AS exam_name, e.exam_date, s.name AS subject_name, g.marks_obtained, g.total_marks
+$sql = "SELECT e.exam_name, e.exam_date, s.name AS subject_name, g.marks_obtained, g.total_marks
         FROM grades g
         JOIN exams e ON g.exam_id = e.id
         JOIN subjects s ON g.subject_id = s.id
         WHERE g.student_id=?
-        ORDER BY e.exam_date DESC, e.term_name, s.name";
+        ORDER BY e.exam_date DESC, e.exam_name, s.name";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param('i', $student_id);
 $stmt->execute();

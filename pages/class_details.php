@@ -69,18 +69,7 @@ if (!$class_id) {
           <tbody></tbody>
         </table>
       </div>
-      <div class="mt-2" id="assignTeacherSection" style="background: #c5c9ce; border-radius: 6px; padding: 16px;">
-        <h5 class="mb-3">Bind Teachers for Subjects(This can be removed later if user ask to)</h5>
-        <label for="addTeacherSelect">Assign Teacher:</label>
-        <select id="addTeacherSelect" class="form-select w-auto d-inline-block"></select>
-        <span id="departmentDropdownContainer" style="display:none">
-          <label for="addTeacherDepartmentSelect">Department:</label>
-          <select id="addTeacherDepartmentSelect" class="form-select w-auto d-inline-block"></select>
-        </span>
-        <label for="addTeacherSubjectSelect">Subject:</label>
-        <select id="addTeacherSubjectSelect" class="form-select w-auto d-inline-block"></select>
-        <button class="btn btn-primary btn-sm" id="addTeacherBtn">Assign</button>
-      </div>
+
     </div>
   </div>
   <div class="row mb-4">
@@ -93,6 +82,8 @@ if (!$class_id) {
               <th>ID</th>
               <th>Name</th>
               <th>Profile</th>
+              <th>Department</th>
+              <th>Section</th>
               <th>Attendance (Today)</th>
             </tr>
           </thead>
